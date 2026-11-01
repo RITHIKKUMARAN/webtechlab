@@ -1,0 +1,89 @@
+{
+  "products": [
+    {
+      "productId": "PROD-101",
+      "productName": "Aetheris ANC Wireless Studio Headphones",
+      "productPrice": 349,
+      "category": "Audio Hardware",
+      "quantity": 18,
+      "description": "Precision-machined matte aluminum frame with high-fidelity custom planar dynamic drivers, active noise cancellation, and 40-hour lossless playback.",
+      "image": "/src/assets/images/product_wireless_headphones_1793540301698.jpg",
+      "rating": 4.9,
+      "isFeatured": true
+    },
+    {
+      "productId": "PROD-102",
+      "productName": "VaporCraft Frosted Custom Mechanical Keyboard",
+      "productPrice": 220,
+      "category": "Peripherals",
+      "quantity": 12,
+      "description": "Smoked acrylic chassis with gasket mount architecture, hot-swappable tactile switches, and braided custom coiled aviator cable.",
+      "image": "/src/assets/images/product_mechanical_keyboard_1793540303457.jpg",
+      "rating": 4.8,
+      "isFeatured": true
+    },
+    {
+      "productId": "PROD-103",
+      "productName": "Apex Titan Aerospace Smartwatch",
+      "productPrice": 499,
+      "category": "Wearables",
+      "quantity": 9,
+      "description": "Grade 5 titanium unibody housing with sapphire crystal lens, dual-frequency GPS, biometric telemetry suite, and submersible 100m resistance.",
+      "image": "/src/assets/images/product_smartwatch_titanium_1793540303070.jpg",
+      "rating": 4.95,
+      "isFeatured": true
+    },
+    {
+      "productId": "PROD-104",
+      "productName": "HyperShield Minimalist Weatherproof Tech Pack",
+      "productPrice": 175,
+      "category": "Accessories",
+      "quantity": 25,
+      "description": "Ballistic waterproof composite weave with magnetic Fidlock closures, suspended 16-inch laptop chamber, and ergonomic load-distribution straps.",
+      "image": "/src/assets/images/product_ergonomic_backpack_1793540303567.jpg",
+      "rating": 4.7,
+      "isFeatured": true
+    },
+    {
+      "productId": "PROD-105",
+      "productName": "NovaGlow Frosted Ambient Light Bar",
+      "productPrice": 89,
+      "category": "Peripherals",
+      "quantity": 30,
+      "description": "Asymmetric optical desktop lamp with touch capacitive slider, 3000K-6500K adaptive color temperature, and zero-glare screen illumination.",
+      "image": "/src/assets/images/product_mechanical_keyboard_1793540303457.jpg",
+      "rating": 4.6,
+      "isFeatured": false
+    },
+    {
+      "productId": "PROD-106",
+      "productName": "Chronos Obsidian Leather Card Case",
+      "productPrice": 65,
+      "category": "Accessories",
+      "quantity": 40,
+      "description": "Full-grain vegetable-tanned Italian leather with RFID electromagnetic shielding and hand-beveled edges.",
+      "image": "/src/assets/images/product_smartwatch_titanium_1793540303070.jpg",
+      "rating": 4.5,
+      "isFeatured": false
+    }
+  ],
+  "users": [
+    {
+      "username": "Raghavendra",
+      "emailId": "user@example.com",
+      "age": 24,
+      "password": "c3810a7e123cfb9293eee421d20336c5e132917061d5e7a1ec5b561a442bd341",
+      "role": "user",
+      "createdAt": "2026-11-01T13:45:26.748Z"
+    },
+    {
+      "username": "Administrator",
+      "emailId": "admin@shop.com",
+      "age": 32,
+      "password": "0889deeeb391a912b7fda77cd2803c7584e33e2979e7e496642161dae4e0dcd4",
+      "role": "admin",
+      "createdAt": "2026-11-01T13:45:26.749Z"
+    }
+  ],
+  "orders": []
+}

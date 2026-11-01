@@ -1,0 +1,6 @@
+{
+  "name": "Lumina Luxe MERN Shopping Platform",
+  "description": "Full-stack MERN shopping application featuring glassmorphism design, custom cursors, drag-and-drop cart, REST API profile management, and interactive API explorer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
