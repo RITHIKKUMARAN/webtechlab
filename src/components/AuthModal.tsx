@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
-import { X, Lock, Mail, User as UserIcon, Calendar, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
+import { X, Lock, Mail, User as UserIcon, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -23,7 +23,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [emailId, setEmailId] = useState('');
   const [age, setAge] = useState<number | ''>('');
   const [password, setPassword] = useState('');
-  const [isAdminRole, setIsAdminRole] = useState(false);
 
   // Status & feedback
   const [loading, setLoading] = useState(false);
@@ -89,7 +88,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       emailId: emailId.trim(),
       age: Number(age),
       password,
-      role: isAdminRole ? 'admin' : 'user',
     });
     setLoading(false);
 
@@ -105,24 +103,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     } else {
       setErrorMessage(result.message);
     }
-  };
-
-  // Quick fill helper for evaluation & testing
-  const quickFill = (role: 'user' | 'admin') => {
-    if (role === 'user') {
-      setEmailId('user@example.com');
-      setPassword('user123');
-      setUsername('Raghavendra');
-      setAge(24);
-      setIsAdminRole(false);
-    } else {
-      setEmailId('admin@shop.com');
-      setPassword('admin123');
-      setUsername('Administrator');
-      setAge(32);
-      setIsAdminRole(true);
-    }
-    setErrorMessage(null);
   };
 
   return (
@@ -254,21 +234,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
             </div>
 
-            {/* Optional Role Assignment */}
-            <div className="flex items-center gap-2 pt-1">
-              <input
-                type="checkbox"
-                id="adminRoleCheck"
-                checked={isAdminRole}
-                onChange={(e) => setIsAdminRole(e.target.checked)}
-                className="rounded border-slate-700 text-indigo-600 focus:ring-0 focus:ring-offset-0 cursor-pointer"
-              />
-              <label htmlFor="adminRoleCheck" className="text-xs text-slate-300 flex items-center gap-1 cursor-pointer">
-                <Shield className="w-3 h-3 text-amber-400" />
-                <span>Register with Administrator privileges</span>
-              </label>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -321,27 +286,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </button>
           </form>
         )}
-
-        {/* Quick Testing helper buttons for Lab evaluation */}
-        <div className="mt-5 pt-4 border-t border-white/10">
-          <p className="text-[11px] text-slate-400 mb-2">Quick credentials for instant testing:</p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => quickFill('user')}
-              className="flex-1 text-xs py-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer text-center"
-            >
-              Raghavendra (User)
-            </button>
-            <button
-              type="button"
-              onClick={() => quickFill('admin')}
-              className="flex-1 text-xs py-1.5 px-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-200 hover:text-amber-100 transition-colors cursor-pointer text-center"
-            >
-              Admin Account
-            </button>
-          </div>
-        </div>
 
       </div>
     </div>

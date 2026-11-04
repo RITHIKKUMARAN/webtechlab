@@ -1,510 +1,331 @@
-import express, { Request, Response, NextFunction } from 'express';
-import { createServer as createViteServer } from 'vite';
+import 'dotenv/config';
+import express, { NextFunction, Request, Response } from 'express';
+import { randomBytes } from 'crypto';
+import helmet from 'helmet';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import jwt from 'jsonwebtoken';
 import path from 'path';
-import { db, hashPassword, verifyPassword } from './src/server/db.ts';
-import { User, Product, Order } from './src/types/index.ts';
+import { createServer as createViteServer } from 'vite';
+import { z } from 'zod';
+import { db, bcrypt } from './src/server/db.ts';
+import { Order, Product, User } from './src/types/index.ts';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
-
-// In-memory active tokens map (token -> user email)
-const activeTokens = new Map<string, { emailId: string; role: 'user' | 'admin'; username: string; expiresAt: number }>();
-
-function generateToken(user: User): string {
-  const token = `lumina_jwt_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
-  activeTokens.set(token, {
-    emailId: user.emailId,
-    role: user.role,
-    username: user.username,
-    expiresAt: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
-  });
-  return token;
+const PORT = Number(process.env.PORT || 3000);
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be configured and at least 32 characters long.');
 }
 
-// Authentication Middleware: allows full exploration with graceful fallback for evaluation
-function authenticate(req: Request, _res: Response, next: NextFunction): void {
-  const authHeader = req.headers.authorization;
-  const queryToken = req.query.token as string | undefined;
-  
-  let token: string | undefined;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.split(' ')[1];
-  } else if (queryToken) {
-    token = queryToken;
-  }
+type AuthUser = Pick<User, 'emailId' | 'username' | 'role'>;
+type AuthRequest = Request & { user?: AuthUser };
 
-  if (token && activeTokens.has(token)) {
-    (req as any).user = activeTokens.get(token);
-    return next();
-  }
+const publicUser = (user: User): Omit<User, 'password'> => {
+  const { password: _password, ...safeUser } = user;
+  return safeUser;
+};
 
-  // Fallback active session for smooth browsing across all views
-  (req as any).user = {
-    emailId: 'user@example.com',
-    role: 'admin',
-    username: 'Raghavendra',
-    expiresAt: Date.now() + 24 * 60 * 60 * 1000
+const tokenFor = (user: AuthUser): string => jwt.sign(user, JWT_SECRET, {
+  algorithm: 'HS256',
+  expiresIn: '24h',
+});
+
+const auth = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  const header = req.header('authorization');
+  if (!header || !header.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Authentication required.' });
+    return;
+  }
+  try {
+    const payload = jwt.verify(header.slice(7), JWT_SECRET, { algorithms: ['HS256'] });
+    if (typeof payload !== 'object' || !payload.emailId || !payload.role || !payload.username) {
+      res.status(401).json({ error: 'Invalid authentication token.' });
+      return;
+    }
+    req.user = {
+      emailId: String(payload.emailId),
+      username: String(payload.username),
+      role: payload.role === 'admin' ? 'admin' : 'user',
+    };
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired authentication token.' });
+  }
+};
+
+const adminOnly = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  if (req.user?.role !== 'admin') {
+    res.status(403).json({ error: 'Administrator privileges are required.' });
+    return;
+  }
+  next();
+};
+
+const asyncRoute = (handler: (req: AuthRequest, res: Response) => Promise<void>) =>
+  (req: Request, res: Response, next: NextFunction) => handler(req as AuthRequest, res).catch(next);
+
+const userInput = z.object({
+  username: z.string().trim().min(2).max(80),
+  emailId: z.string().trim().email().max(254),
+  age: z.coerce.number().int().min(1).max(120),
+  password: z.string().min(8).max(128),
+});
+const profileInput = z.object({
+  username: z.string().trim().min(2).max(80),
+  age: z.coerce.number().int().min(1).max(120),
+  password: z.string().min(8).max(128).optional(),
+});
+const patchInput = profileInput.partial().refine(value => Object.keys(value).length > 0, 'At least one field is required.');
+const productInput = z.object({
+  productId: z.string().trim().min(1).max(40).optional(),
+  productName: z.string().trim().min(2).max(160),
+  productPrice: z.coerce.number().finite().min(0),
+  category: z.string().trim().min(2).max(80),
+  quantity: z.coerce.number().int().min(0),
+  description: z.string().trim().min(2).max(1000),
+  image: z.string().trim().max(500).optional(),
+});
+
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
+app.use(helmet());
+app.use(cors({ origin: process.env.APP_URL || 'http://localhost:3000' }));
+app.use(express.json({ limit: '32kb' }));
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: true, legacyHeaders: false }));
+app.use('/api/login', rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, message: { error: 'Too many login attempts. Try again later.' } }));
+
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', service: 'lumina-luxe' });
+});
+
+app.post('/api/users', asyncRoute(async (req, res) => {
+  const parsed = userInput.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Invalid registration details.', details: parsed.error.flatten().fieldErrors });
+    return;
+  }
+  const data = parsed.data;
+  if (await db.findUserByEmail(data.emailId)) {
+    res.status(409).json({ error: 'That email address is already registered.' });
+    return;
+  }
+  const user = await db.insertUser({
+    ...data,
+    emailId: data.emailId.toLowerCase(),
+    password: await bcrypt.hash(data.password, 12),
+    role: 'user',
+  });
+  const safeUser = publicUser(user);
+  res.status(201).json({ message: `Successfully registered! Welcome, ${safeUser.username}.`, token: tokenFor(safeUser), user: safeUser });
+}));
+
+app.post('/api/login', asyncRoute(async (req, res) => {
+  const parsed = z.object({ emailId: z.string().trim().email(), password: z.string().min(1).max(128) }).safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Email ID and password are required.' });
+    return;
+  }
+  const user = await db.findUserByEmail(parsed.data.emailId, true);
+  if (!user || !user.password || !(await bcrypt.compare(parsed.data.password, user.password))) {
+    res.status(401).json({ error: 'Invalid email ID or password.' });
+    return;
+  }
+  const safeUser = publicUser(user);
+  res.json({ message: `Login successful. Welcome back, ${safeUser.username}!`, token: tokenFor(safeUser), user: safeUser });
+}));
+
+app.get('/api/products', auth, asyncRoute(async (_req, res) => {
+  const products = await db.getAllProducts();
+  res.json({ total: products.length, products });
+}));
+
+app.get('/api/products/preview', (_req, res) => {
+  res.status(410).json({ error: 'Product data requires authentication. Please sign in.' });
+});
+
+const profileEmail = (req: AuthRequest): string => req.user?.emailId || '';
+const ensureOwnProfile = (req: AuthRequest, res: Response, emailId: string): boolean => {
+  if (req.user?.role !== 'admin' && emailId.trim().toLowerCase() !== profileEmail(req).toLowerCase()) {
+    res.status(403).json({ error: 'You may only modify your own profile.' });
+    return false;
+  }
+  return true;
+};
+
+app.get('/api/users', auth, asyncRoute(async (req, res) => {
+  const emailId = String(req.query.emailId || '');
+  if (!emailId || !ensureOwnProfile(req, res, emailId)) return;
+  const user = await db.findUserByEmail(emailId);
+  if (!user) {
+    res.status(404).json({ error: 'User not found.' });
+    return;
+  }
+  res.json({ user: publicUser(user) });
+}));
+
+app.put('/api/users', auth, asyncRoute(async (req, res) => {
+  const emailId = String(req.query.emailId || '');
+  if (!emailId || !ensureOwnProfile(req, res, emailId)) return;
+  const parsed = profileInput.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Complete profile details are required.', details: parsed.error.flatten().fieldErrors });
+    return;
+  }
+  const user = await db.updateUserComplete(emailId, parsed.data);
+  if (!user) {
+    res.status(404).json({ error: 'User not found.' });
+    return;
+  }
+  res.json({ message: 'User profile completely updated successfully.', user: publicUser(user) });
+}));
+
+app.patch('/api/users', auth, asyncRoute(async (req, res) => {
+  const emailId = String(req.query.emailId || '');
+  if (!emailId || !ensureOwnProfile(req, res, emailId)) return;
+  const parsed = patchInput.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'At least one valid profile field is required.', details: parsed.error.flatten().fieldErrors });
+    return;
+  }
+  const user = await db.updateUserPartial(emailId, parsed.data);
+  if (!user) {
+    res.status(404).json({ error: 'User not found.' });
+    return;
+  }
+  res.json({ message: 'Selected user profile fields updated successfully.', user: publicUser(user) });
+}));
+
+app.delete('/api/users', auth, asyncRoute(async (req, res) => {
+  const emailId = String(req.query.emailId || '');
+  if (!emailId || !ensureOwnProfile(req, res, emailId)) return;
+  if (!(await db.deleteUser(emailId))) {
+    res.status(404).json({ error: 'User not found.' });
+    return;
+  }
+  res.json({ message: 'User registration record deleted successfully.' });
+}));
+
+app.post('/api/checkout', auth, asyncRoute(async (req, res) => {
+  const schema = z.object({
+    items: z.array(z.object({ productId: z.string().trim().min(1), quantity: z.coerce.number().int().min(1).max(100) })).min(1).max(50),
+    shippingAddress: z.object({
+      fullName: z.string().trim().min(2).max(120),
+      address: z.string().trim().min(5).max(300),
+      city: z.string().trim().min(2).max(80),
+      postalCode: z.string().trim().min(3).max(20),
+      phone: z.string().trim().min(7).max(30),
+    }),
+    paymentMethod: z.string().trim().min(2).max(50),
+  }).safeParse(req.body);
+  if (!schema.success) {
+    res.status(400).json({ error: 'Invalid checkout details.' });
+    return;
+  }
+  const { items, shippingAddress, paymentMethod } = schema.data;
+  const products = await Promise.all(items.map(item => db.findProductById(item.productId)));
+  if (products.some(product => !product)) {
+    res.status(400).json({ error: 'One or more products were not found.' });
+    return;
+  }
+  const orderItems = items.map((item, index) => {
+    const product = products[index] as Product;
+    return { productId: product.productId, productName: product.productName, productPrice: product.productPrice, quantity: item.quantity, subtotal: product.productPrice * item.quantity };
+  });
+  const order: Order = {
+    orderId: `ORD-${cryptoRandomId()}`,
+    emailId: profileEmail(req),
+    username: req.user?.username || '',
+    items: orderItems,
+    totalAmount: orderItems.reduce((sum, item) => sum + item.subtotal, 0),
+    shippingAddress,
+    paymentMethod,
+    status: 'Confirmed',
+    createdAt: new Date().toISOString(),
   };
-  next();
-}
-
-function requireAdmin(req: Request, _res: Response, next: NextFunction): void {
-  const session = (req as any).user;
-  // Always permit admin features in interactive preview
-  if (!session) {
-    (req as any).user = {
-      emailId: 'admin@shop.com',
-      role: 'admin',
-      username: 'Administrator',
-      expiresAt: Date.now() + 24 * 60 * 60 * 1000
-    };
+  const savedOrder = await db.createOrderWithStock(order, items);
+  if (!savedOrder) {
+    res.status(409).json({ error: 'Stock changed while checking out. Please review your cart and try again.' });
+    return;
   }
-  next();
-}
+  res.status(201).json({ message: 'Order placed successfully! Inventory updated.', order: savedOrder });
+}));
 
-// ==========================================
-// 1. USER REGISTRATION (Exercise-8 Page 1)
-// POST /api/users
-// ==========================================
-app.post('/api/users', (req: Request, res: Response): void => {
-  try {
-    const { username, emailId, age, password, role } = req.body;
+app.get('/api/orders', auth, asyncRoute(async (req, res) => {
+  res.json({ orders: await db.getOrders(req.user?.role === 'admin' ? undefined : profileEmail(req)) });
+}));
 
-    // Validation
-    if (!username || !emailId || age === undefined || !password) {
-      res.status(400).json({ error: 'All fields (username, emailId, age, password) are mandatory.' });
-      return;
-    }
-
-    const trimmedEmail = String(emailId).trim().toLowerCase();
-    if (!trimmedEmail || !/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
-      res.status(400).json({ error: 'Please enter a valid email address.' });
-      return;
-    }
-
-    const parsedAge = Number(age);
-    if (isNaN(parsedAge) || parsedAge <= 0 || parsedAge > 120) {
-      res.status(400).json({ error: 'Please enter a valid age between 1 and 120.' });
-      return;
-    }
-
-    if (String(password).length < 4) {
-      res.status(400).json({ error: 'Password must be at least 4 characters long.' });
-      return;
-    }
-
-    // Check whether the email ID is already registered in MongoDB/collection
-    const existingUser = db.findUserByEmail(trimmedEmail);
-    if (existingUser) {
-      res.status(400).json({ error: `Email ID '${trimmedEmail}' is already registered in the database.` });
-      return;
-    }
-
-    // Store the user's details in the Users collection
-    const newUser = db.insertUser({
-      username: String(username).trim(),
-      emailId: trimmedEmail,
-      age: parsedAge,
-      password: hashPassword(String(password)),
-      role: role === 'admin' ? 'admin' : 'user'
-    });
-
-    // Generate an automatic session token so user can optionally transition seamlessly
-    const token = generateToken(newUser);
-
-    // After successful registration, display a message containing the registered username (matches PDF example)
-    res.status(201).json({
-      message: `Successfully registered! Welcome, ${newUser.username}.`,
-      token,
-      user: {
-        username: newUser.username,
-        emailId: newUser.emailId,
-        age: newUser.age,
-        role: newUser.role
-      }
-    });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Internal server error during registration.' });
+app.post('/api/products', auth, adminOnly, asyncRoute(async (req, res) => {
+  const parsed = productInput.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Invalid product details.', details: parsed.error.flatten().fieldErrors });
+    return;
   }
-});
-
-// ==========================================
-// 2. USER LOGIN (Exercise-8 Page 2)
-// POST /api/login
-// ==========================================
-app.post('/api/login', (req: Request, res: Response): void => {
-  try {
-    const { emailId, password } = req.body;
-
-    if (!emailId || !password) {
-      res.status(400).json({ error: 'Both email ID and password are required.' });
-      return;
-    }
-
-    const trimmedEmail = String(emailId).trim().toLowerCase();
-    const user = db.findUserByEmail(trimmedEmail);
-
-    // If the email ID is not available in the database:
-    // Display "User Not Registered." (Exact quote from PDF Page 2)
-    if (!user) {
-      res.status(404).json({ error: 'User Not Registered.' });
-      return;
-    }
-
-    // If the email ID exists but the password does not match:
-    // Display "Invalid Password." (Exact quote from PDF Page 2)
-    const isPasswordValid = verifyPassword(String(password), user.password || '');
-    if (!isPasswordValid) {
-      res.status(401).json({ error: 'Invalid Password.' });
-      return;
-    }
-
-    // Both match -> allow user to access Products Display page
-    const token = generateToken(user);
-
-    res.status(200).json({
-      message: `Login successful. Welcome back, ${user.username}!`,
-      token,
-      user: {
-        username: user.username,
-        emailId: user.emailId,
-        age: user.age,
-        role: user.role
-      }
-    });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Internal server error during login.' });
-  }
-});
-
-// ==========================================
-// 3. PRODUCTS DISPLAY (Exercise-8 Page 3)
-// GET /api/products
-// Returns products to allow immediate viewing, with optional strict check for lab testing
-// ==========================================
-app.get('/api/products', (req: Request, res: Response): void => {
-  try {
-    const strictAuth = req.query.strict === 'true' || req.headers['x-strict-auth'] === 'true';
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : (req.query.token as string | undefined);
-
-    if (strictAuth && (!token || !activeTokens.has(token))) {
-      res.status(401).json({
-        error: 'Unauthenticated. Access denied. Unauthenticated users cannot access this data directly through the backend API.'
-      });
-      return;
-    }
-
-    const products = db.getAllProducts();
-    res.status(200).json({
-      total: products.length,
-      products,
-      isAuthenticated: Boolean(token && activeTokens.has(token))
-    });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Failed to fetch products.' });
-  }
-});
-
-// Public preview products route (allows unauthenticated visitors to view catalog in read-only mode if configured, but /api/products strictly adheres to PDF authentication requirement)
-app.get('/api/products/preview', (_req: Request, res: Response): void => {
-  const products = db.getAllProducts();
-  res.status(200).json({
-    total: products.length,
-    products
+  const product = await db.addProduct({
+    ...parsed.data,
+    productId: parsed.data.productId || `PROD-${Date.now()}`,
+    rating: 5,
+    isFeatured: false,
   });
-});
+  res.status(201).json({ message: 'Product added successfully.', product });
+}));
 
-// ==========================================
-// 4. USER PROFILE MANAGEMENT USING REST API
-// ==========================================
-
-// A. PUT Operation — Update Complete Details
-// Example request: PUT /api/users?emailId=user@example.com
-app.put('/api/users', (req: Request, res: Response): void => {
-  try {
-    const emailId = (req.query.emailId as string) || (req.body.emailId as string);
-    if (!emailId) {
-      res.status(400).json({ error: 'Query parameter emailId is required (e.g., /api/users?emailId=user@example.com)' });
-      return;
-    }
-
-    const { username, age, password } = req.body;
-    if (!username || age === undefined) {
-      res.status(400).json({ error: 'Complete details (username, age) must be provided for PUT update.' });
-      return;
-    }
-
-    // Check if user exists
-    const existing = db.findUserByEmail(emailId);
-    if (!existing) {
-      res.status(404).json({ error: `User with email '${emailId}' does not exist.` });
-      return;
-    }
-
-    const updated = db.updateUserComplete(emailId, { username, age, password });
-    if (!updated) {
-      res.status(404).json({ error: 'Failed to update user profile.' });
-      return;
-    }
-
-    res.status(200).json({
-      message: 'User profile completely updated successfully.',
-      user: {
-        username: updated.username,
-        emailId: updated.emailId,
-        age: updated.age,
-        role: updated.role
-      }
-    });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Error updating user profile.' });
+app.put('/api/products/:productId', auth, adminOnly, asyncRoute(async (req, res) => {
+  const parsed = productInput.omit({ productId: true }).partial().safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Invalid product details.' });
+    return;
   }
-});
-
-// B. PATCH Operation — Update Selected Details
-// Example request: PATCH /api/users?emailId=user@example.com
-app.patch('/api/users', (req: Request, res: Response): void => {
-  try {
-    const emailId = (req.query.emailId as string) || (req.body.emailId as string);
-    if (!emailId) {
-      res.status(400).json({ error: 'Query parameter emailId is required (e.g., /api/users?emailId=user@example.com)' });
-      return;
-    }
-
-    // Check whether the specified user exists before performing the operation
-    const existing = db.findUserByEmail(emailId);
-    if (!existing) {
-      res.status(404).json({ error: `User with email '${emailId}' does not exist.` });
-      return;
-    }
-
-    const updated = db.updateUserPartial(emailId, req.body);
-    if (!updated) {
-      res.status(404).json({ error: 'Failed to update selected user details.' });
-      return;
-    }
-
-    res.status(200).json({
-      message: 'Selected user profile fields updated successfully.',
-      user: {
-        username: updated.username,
-        emailId: updated.emailId,
-        age: updated.age,
-        role: updated.role
-      }
-    });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Error patching user profile.' });
+  const product = await db.updateProduct(req.params.productId, parsed.data);
+  if (!product) {
+    res.status(404).json({ error: 'Product not found.' });
+    return;
   }
-});
+  res.json({ message: 'Product updated successfully.', product });
+}));
 
-// C. DELETE Operation — Delete User Details
-// Example request: DELETE /api/users?emailId=user@example.com
-app.delete('/api/users', (req: Request, res: Response): void => {
-  try {
-    const emailId = (req.query.emailId as string) || (req.body.emailId as string);
-    if (!emailId) {
-      res.status(400).json({ error: 'Query parameter emailId is required (e.g., /api/users?emailId=user@example.com)' });
-      return;
-    }
-
-    // "The backend must check whether the specified user exists before performing the operation and return an appropriate success or error response."
-    const existing = db.findUserByEmail(emailId);
-    if (!existing) {
-      res.status(404).json({ error: `User with email '${emailId}' does not exist.` });
-      return;
-    }
-
-    const deleted = db.deleteUser(emailId);
-    if (!deleted) {
-      res.status(500).json({ error: 'Failed to delete user record from database.' });
-      return;
-    }
-
-    res.status(200).json({
-      message: `User registration record for '${emailId}' deleted successfully.`
-    });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Error deleting user record.' });
+app.delete('/api/products/:productId', auth, adminOnly, asyncRoute(async (req, res) => {
+  if (!(await db.deleteProduct(req.params.productId))) {
+    res.status(404).json({ error: 'Product not found.' });
+    return;
   }
+  res.json({ message: 'Product deleted successfully.' });
+}));
+
+app.get('/api/admin/users', auth, adminOnly, asyncRoute(async (_req, res) => {
+  const users = await db.getAllUsers();
+  res.json({ total: users.length, users });
+}));
+
+app.post('/api/admin/reset-db', auth, adminOnly, asyncRoute(async (_req, res) => {
+  await db.resetDefaults();
+  res.json({ message: 'Database reset to initial seed records successfully.' });
+}));
+
+app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  console.error(error);
+  res.status(500).json({ error: 'Internal server error.' });
 });
 
-// ==========================================
-// 5. SHOPPING CHECKOUT & ORDERS
-// ==========================================
-app.post('/api/checkout', authenticate, (req: Request, res: Response): void => {
-  try {
-    const session = (req as any).user;
-    const { items, shippingAddress, paymentMethod } = req.body;
+function cryptoRandomId(): string {
+  return `${Date.now().toString(36)}-${randomBytes(8).toString('hex')}`;
+}
 
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      res.status(400).json({ error: 'Your cart is empty. Please add items before checking out.' });
-      return;
-    }
-
-    if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.address) {
-      res.status(400).json({ error: 'Complete shipping address is required.' });
-      return;
-    }
-
-    // Verify stock and calculate total
-    let totalAmount = 0;
-    const orderItems = [];
-
-    for (const item of items) {
-      const product = db.findProductById(item.productId);
-      if (!product) {
-        res.status(400).json({ error: `Product ID '${item.productId}' was not found in catalog.` });
-        return;
-      }
-      if (product.quantity < item.quantity) {
-        res.status(400).json({
-          error: `Insufficient inventory for '${product.productName}'. Available: ${product.quantity}, requested: ${item.quantity}.`
-        });
-        return;
-      }
-      const subtotal = product.productPrice * item.quantity;
-      totalAmount += subtotal;
-      orderItems.push({
-        productId: product.productId,
-        productName: product.productName,
-        productPrice: product.productPrice,
-        quantity: item.quantity,
-        subtotal
-      });
-    }
-
-    // Decrement inventory in database
-    db.decrementStock(items);
-
-    const orderId = `ORD-${Date.now().toString().slice(-6)}`;
-    const newOrder: Order = {
-      orderId,
-      emailId: session.emailId,
-      username: session.username,
-      items: orderItems,
-      totalAmount,
-      shippingAddress,
-      paymentMethod: paymentMethod || 'Cash On Delivery / Card',
-      status: 'Confirmed',
-      createdAt: new Date().toISOString()
-    };
-
-    const savedOrder = db.createOrder(newOrder);
-
-    res.status(201).json({
-      message: 'Order placed successfully! Inventory updated.',
-      order: savedOrder
-    });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Error processing checkout.' });
-  }
-});
-
-app.get('/api/orders', authenticate, (req: Request, res: Response): void => {
-  const session = (req as any).user;
-  const orders = session.role === 'admin' ? db.getOrders() : db.getOrders(session.emailId);
-  res.status(200).json({ orders });
-});
-
-// ==========================================
-// 6. ADMIN PRODUCT & SYSTEM MANAGEMENT
-// ==========================================
-app.post('/api/products', authenticate, requireAdmin, (req: Request, res: Response): void => {
-  try {
-    const { productId, productName, productPrice, category, quantity, description, image } = req.body;
-    if (!productName || productPrice === undefined || !category || quantity === undefined || !description) {
-      res.status(400).json({ error: 'All product fields are required.' });
-      return;
-    }
-
-    const id = productId || `PROD-${Date.now().toString().slice(-4)}`;
-    if (db.findProductById(id)) {
-      res.status(400).json({ error: `Product with ID '${id}' already exists.` });
-      return;
-    }
-
-    const newProd: Product = {
-      productId: id,
-      productName,
-      productPrice: Number(productPrice),
-      category,
-      quantity: Number(quantity),
-      description,
-      image: image || '/src/assets/images/product_wireless_headphones_1793540301698.jpg',
-      rating: 5.0,
-      isFeatured: false
-    };
-
-    db.addProduct(newProd);
-    res.status(201).json({ message: 'Product added successfully.', product: newProd });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message || 'Error creating product.' });
-  }
-});
-
-app.put('/api/products/:productId', authenticate, requireAdmin, (req: Request, res: Response): void => {
-  try {
-    const { productId } = req.params;
-    const updated = db.updateProduct(productId, req.body);
-    if (!updated) {
-      res.status(404).json({ error: `Product '${productId}' not found.` });
-      return;
-    }
-    res.status(200).json({ message: 'Product updated successfully.', product: updated });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message || 'Error updating product.' });
-  }
-});
-
-app.delete('/api/products/:productId', authenticate, requireAdmin, (req: Request, res: Response): void => {
-  try {
-    const { productId } = req.params;
-    const deleted = db.deleteProduct(productId);
-    if (!deleted) {
-      res.status(404).json({ error: `Product '${productId}' not found.` });
-      return;
-    }
-    res.status(200).json({ message: `Product '${productId}' deleted successfully.` });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message || 'Error deleting product.' });
-  }
-});
-
-app.get('/api/admin/users', authenticate, requireAdmin, (_req: Request, res: Response): void => {
-  const users = db.getAllUsers();
-  res.status(200).json({ total: users.length, users });
-});
-
-app.post('/api/admin/reset-db', authenticate, requireAdmin, (_req: Request, res: Response): void => {
-  db.resetDefaults();
-  res.status(200).json({ message: 'Database reset to initial default collections successfully.' });
-});
-
-// ==========================================
-// VITE DEV SERVER / STATIC ASSETS
-// ==========================================
-async function startServer() {
+async function startServer(): Promise<void> {
+  await db.connect();
+  await db.ensureSeeded();
   const isProd = process.env.NODE_ENV === 'production';
   if (!isProd) {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa'
-    });
+    const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
     app.use(vite.middlewares);
   } else {
     app.use(express.static(path.resolve(process.cwd(), 'dist')));
-    app.get('*', (_req: Request, res: Response) => {
-      res.sendFile(path.resolve(process.cwd(), 'dist', 'index.html'));
-    });
+    app.get('*', (_req, res) => res.sendFile(path.resolve(process.cwd(), 'dist', 'index.html')));
   }
-
-  app.listen(PORT, () => {
-    console.log(`Lumina Luxe Server active at http://localhost:${PORT}`);
-  });
+  app.listen(PORT, () => console.log(`Lumina Luxe Server active at http://localhost:${PORT}`));
 }
 
-startServer();
+startServer().catch(error => {
+  console.error('Unable to start server:', error);
+  process.exitCode = 1;
+});

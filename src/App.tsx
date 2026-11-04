@@ -14,6 +14,7 @@ import { ProfileManagement } from './components/ProfileManagement.tsx';
 import { AdminPanel } from './components/AdminPanel.tsx';
 import { ApiTester } from './components/ApiTester.tsx';
 import { OrdersView } from './components/OrdersView.tsx';
+import { HeroScene } from './components/HeroScene.tsx';
 import { sound } from './utils/soundEffects.ts';
 import {
   Search,
@@ -29,12 +30,12 @@ import {
 } from 'lucide-react';
 
 function ShoppingAppContent() {
-  const { token, user, isAuthenticated } = useAuth();
+  const { token, isAuthenticated } = useAuth();
   const { addToCart, applyCoupon } = useCart();
   const [currentView, setCurrentView] = useState<'products' | 'profile' | 'admin' | 'api-tester' | 'orders'>('products');
   
   // Interactive Modals
-  const [welcomeModalOpen, setWelcomeModalOpen] = useState(true); // Welcoming reception on load as requested!
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
   const [scratchCardOpen, setScratchCardOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
@@ -179,20 +180,16 @@ function ShoppingAppContent() {
             </div>
 
             {/* Storefront Hero Banner */}
-            <div className="relative rounded-3xl glass-panel p-6 sm:p-8 border border-white/15 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="relative z-10 max-w-xl space-y-2.5">
-                <div className="flex items-center gap-2 text-indigo-400 text-xs font-mono font-semibold uppercase tracking-wider">
-                  <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />
-                  <span>Exercise-8 MERN Stack Live Showcase</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-display text-balance">
-                  Engineered Hardware with Liquid Glass & Fluid Drag-to-Cart.
+            <div className="hero-panel relative overflow-hidden">
+              <div className="hero-copy relative z-10">
+                <div className="eyebrow"><span className="eyebrow-dot" /> Curated technology, considered design</div>
+                <h1 className="hero-title">
+                  Objects for a <em>more capable</em> everyday.
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                  Drag any product card directly onto the floating cart dock. All operations persist to the MongoDB Collections with real-time stock deduction.
+                <p className="hero-subtitle">
+                  Thoughtful hardware selected for the way you work, move, and create. Discover the collection and make it yours.
                 </p>
-
-                <div className="pt-2 flex items-center gap-3">
+                <div className="hero-actions">
                   <button
                     onClick={() => {
                       sound.playClick();
@@ -201,9 +198,8 @@ function ShoppingAppContent() {
                     className="px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Lumi Welcome Reception</span>
+                    <span>Explore the collection</span>
                   </button>
-
                   <button
                     onClick={() => {
                       sound.playClick();
@@ -211,25 +207,14 @@ function ShoppingAppContent() {
                     }}
                     className="px-3.5 py-2 text-xs font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors cursor-pointer"
                   >
-                    API Explorer
+                    View how it works
                   </button>
                 </div>
               </div>
-
-              {/* Mascot & Logo Showcase Card */}
-              <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 shrink-0">
-                <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/20 bg-slate-900 shadow-lg">
-                  <img
-                    src="/src/assets/images/mascot_lumi_welcoming_1793541903889.jpg"
-                    alt="Mascot Lumi"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="text-left text-xs font-mono">
-                  <span className="text-indigo-300 font-bold block">Lumi Concierge</span>
-                  <span className="text-slate-400 text-[11px]">Active Persona:</span>
-                  <span className="text-emerald-400 font-semibold block capitalize">{user?.role || 'Guest'}</span>
-                </div>
+              <HeroScene />
+              <div className="hero-meta">
+                <span>01 — The collection</span>
+                <span>Real inventory · Secure checkout</span>
               </div>
             </div>
 

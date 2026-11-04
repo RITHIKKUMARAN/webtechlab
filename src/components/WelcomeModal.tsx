@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { sound } from '../utils/soundEffects.ts';
 import { useAuth } from '../context/AuthContext.tsx';
-import { Sparkles, ShoppingBag, Shield, ArrowRight, UserCheck, X } from 'lucide-react';
+import { Sparkles, ShoppingBag, Shield, ArrowRight, X } from 'lucide-react';
 
 interface WelcomeModalProps {
   isOpen: boolean;
@@ -10,7 +10,7 @@ interface WelcomeModalProps {
 }
 
 export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onComplete }) => {
-  const { login, switchPersona } = useAuth();
+  const { login } = useAuth();
   const [step, setStep] = useState<'welcome' | 'user-login' | 'admin-login'>('welcome');
   const [emailId, setEmailId] = useState('');
   const [password, setPassword] = useState('');
@@ -36,15 +36,15 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onC
 
   const selectUserFlow = () => {
     sound.playClick();
-    setEmailId('user@example.com');
-    setPassword('user123');
+    setEmailId('');
+    setPassword('');
     setStep('user-login');
   };
 
   const selectAdminFlow = () => {
     sound.playClick();
-    setEmailId('admin@shop.com');
-    setPassword('admin123');
+    setEmailId('');
+    setPassword('');
     setStep('admin-login');
   };
 
@@ -66,13 +66,6 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onC
     } else {
       setErrorMsg(result.message || 'Authentication error.');
     }
-  };
-
-  const handleInstantExplore = (role: 'user' | 'admin') => {
-    sound.playSuccess();
-    switchPersona(role);
-    onComplete();
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -168,11 +161,11 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onC
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleInstantExplore('user');
+                    selectUserFlow();
                   }}
                   className="mt-3 text-[10px] font-bold text-indigo-300 hover:text-white uppercase font-mono tracking-wider"
                 >
-                  Quick Enter (Raghavendra) →
+                  Sign in with your account →
                 </button>
               </div>
 
@@ -195,27 +188,14 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onC
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleInstantExplore('admin');
+                    selectAdminFlow();
                   }}
                   className="mt-3 text-[10px] font-bold text-amber-300 hover:text-white uppercase font-mono tracking-wider"
                 >
-                  Quick Enter (Admin Alex) →
+                  Sign in with your administrator account →
                 </button>
               </div>
 
-            </div>
-
-            {/* Direct Skip to Catalog */}
-            <div className="pt-1">
-              <button
-                onClick={() => {
-                  sound.playWhoosh();
-                  handleInstantExplore('user');
-                }}
-                className="text-xs text-slate-400 hover:text-white transition-colors underline underline-offset-4 cursor-pointer"
-              >
-                Or jump straight into the Catalog as Guest
-              </button>
             </div>
 
           </div>
@@ -281,13 +261,6 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onC
                   {loading ? 'Authenticating...' : 'Sign In & Access Catalog'}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleInstantExplore('user')}
-                  className="w-full py-2 px-4 text-xs font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors cursor-pointer"
-                >
-                  1-Click Instant User Access (Raghavendra)
-                </button>
               </div>
             </form>
           </div>
@@ -353,13 +326,6 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onC
                   {loading ? 'Verifying Admin...' : 'Unlock Admin Portal'}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleInstantExplore('admin')}
-                  className="w-full py-2 px-4 text-xs font-medium text-amber-300 hover:text-white bg-amber-500/10 hover:bg-amber-500/20 rounded-xl border border-amber-500/20 transition-colors cursor-pointer"
-                >
-                  1-Click Instant Admin Access
-                </button>
               </div>
             </form>
           </div>

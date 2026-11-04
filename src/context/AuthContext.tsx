@@ -3,9 +3,8 @@ import { User, AuthState } from '../types/index.ts';
 
 interface AuthContextType extends AuthState {
   login: (emailId: string, password: string) => Promise<{ success: boolean; message: string }>;
-  register: (data: { username: string; emailId: string; age: number; password: string; role?: 'user' | 'admin' }) => Promise<{ success: boolean; message: string }>;
+  register: (data: { username: string; emailId: string; age: number; password: string }) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
-  switchPersona: (role: 'admin' | 'user' | 'guest') => void;
   updateUserSession: (user: User) => void;
   refreshUserData: () => Promise<void>;
 }
@@ -15,20 +14,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const TOKEN_KEY = 'lumina_auth_token';
 const USER_KEY = 'lumina_auth_user';
 
-// Default active session so user is never locked out of any page
-const DEFAULT_USER: User = {
-  username: 'Raghavendra',
-  emailId: 'user@example.com',
-  age: 24,
-  role: 'admin', // Elevated by default so all pages (products, admin, profile, orders) are viewable
-  createdAt: new Date().toISOString(),
-};
-const DEFAULT_TOKEN = 'lumina_demo_token_raghavendra';
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(() => {
-    const saved = localStorage.getItem(TOKEN_KEY);
-    return saved !== null ? saved : DEFAULT_TOKEN;
+    return localStorage.getItem(TOKEN_KEY);
   });
 
   const [user, setUser] = useState<User | null>(() => {
@@ -37,10 +25,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         return JSON.parse(saved);
       } catch {
-        return DEFAULT_USER;
+        return null;
       }
     }
-    return DEFAULT_USER;
+    return null;
   });
 
   const isAuthenticated = !!token && !!user;
@@ -61,33 +49,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem(USER_KEY);
     }
   }, [user]);
-
-  const switchPersona = (role: 'admin' | 'user' | 'guest') => {
-    if (role === 'guest') {
-      setToken(null);
-      setUser(null);
-    } else if (role === 'user') {
-      const u: User = {
-        username: 'Raghavendra',
-        emailId: 'user@example.com',
-        age: 24,
-        role: 'user',
-        createdAt: new Date().toISOString(),
-      };
-      setUser(u);
-      setToken('lumina_token_user_raghavendra');
-    } else {
-      const a: User = {
-        username: 'Alex Rivers (Admin)',
-        emailId: 'admin@shop.com',
-        age: 32,
-        role: 'admin',
-        createdAt: new Date().toISOString(),
-      };
-      setUser(a);
-      setToken('lumina_token_admin_alex');
-    }
-  };
 
   const login = async (emailId: string, password: string) => {
     try {
@@ -110,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (userData: { username: string; emailId: string; age: number; password: string; role?: 'user' | 'admin' }) => {
+  const register = async (userData: { username: string; emailId: string; age: number; password: string }) => {
     try {
       const res = await fetch('/api/users', {
         method: 'POST',
@@ -146,6 +107,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshUserData = async () => {
     if (!token || !user?.emailId) return;
+    const res = await fetch(`/api/users?emailId=${encodeURIComponent(user.emailId)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.status === 401) logout();
   };
 
   return (
@@ -158,7 +123,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         register,
         logout,
-        switchPersona,
         updateUserSession,
         refreshUserData
       }}

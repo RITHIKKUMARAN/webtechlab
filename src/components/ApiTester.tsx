@@ -35,8 +35,8 @@ const PRESETS: EndpointPreset[] = [
     description: 'Exercise-8 Page 2: Validate against Users collection ("User Not Registered." / "Invalid Password.").',
     defaultBody: JSON.stringify(
       {
-        emailId: 'user@example.com',
-        password: 'user123',
+        emailId: '',
+        password: '',
       },
       null,
       2
@@ -52,7 +52,7 @@ const PRESETS: EndpointPreset[] = [
   {
     name: '4. PUT Profile (PUT /api/users?emailId=...)',
     method: 'PUT',
-    path: '/api/users?emailId=user@example.com',
+    path: '/api/users?emailId=your-email@example.com',
     description: 'Exercise-8 Section 3A: Update complete editable profile details.',
     defaultBody: JSON.stringify(
       {
@@ -67,7 +67,7 @@ const PRESETS: EndpointPreset[] = [
   {
     name: '5. PATCH Profile (PATCH /api/users?emailId=...)',
     method: 'PATCH',
-    path: '/api/users?emailId=user@example.com',
+    path: '/api/users?emailId=your-email@example.com',
     description: 'Exercise-8 Section 3B: Update only selected profile fields.',
     defaultBody: JSON.stringify(
       {

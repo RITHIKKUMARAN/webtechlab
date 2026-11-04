@@ -1,294 +1,209 @@
-import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
-import { Product, User, Order } from '../types/index.ts';
+import bcrypt from 'bcryptjs';
+import mongoose, { Schema } from 'mongoose';
+import { Order, Product, User } from '../types/index.ts';
 
-const DATA_DIR = path.resolve(process.cwd(), '.data');
-const DATA_FILE = path.join(DATA_DIR, 'store.json');
+const mongoUri = process.env.MONGODB_URI;
 
-// Password security using SHA-256 + cryptographic salt
-export function hashPassword(password: string, salt: string = 'lumina_salt_sec'): string {
-  return crypto.createHmac('sha256', salt).update(password).digest('hex');
-}
+const productSchema = new Schema<Product>({
+  productId: { type: String, required: true, unique: true, trim: true },
+  productName: { type: String, required: true, trim: true },
+  productPrice: { type: Number, required: true, min: 0 },
+  category: { type: String, required: true, trim: true },
+  quantity: { type: Number, required: true, min: 0 },
+  description: { type: String, required: true, trim: true },
+  image: String,
+  rating: { type: Number, min: 0, max: 5 },
+  isFeatured: Boolean,
+}, { versionKey: false });
 
-export function verifyPassword(password: string, storedHash: string, salt: string = 'lumina_salt_sec'): boolean {
-  const computed = hashPassword(password, salt);
-  return computed === storedHash;
-}
+const userSchema = new Schema<User>({
+  username: { type: String, required: true, trim: true, minlength: 2, maxlength: 80 },
+  emailId: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
+  age: { type: Number, required: true, min: 1, max: 120 },
+  password: { type: String, required: true, select: false },
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  createdAt: { type: String, default: () => new Date().toISOString() },
+}, { versionKey: false });
 
-// Initial sample seed data using our high fidelity generated images
+const orderSchema = new Schema<Order>({
+  orderId: { type: String, required: true, unique: true },
+  emailId: { type: String, required: true, index: true },
+  username: { type: String, required: true },
+  items: [{
+    productId: String,
+    productName: String,
+    productPrice: Number,
+    quantity: Number,
+    subtotal: Number,
+  }],
+  totalAmount: { type: Number, required: true, min: 0 },
+  shippingAddress: {
+    fullName: String,
+    address: String,
+    city: String,
+    postalCode: String,
+    phone: String,
+  },
+  paymentMethod: { type: String, required: true },
+  status: { type: String, enum: ['Confirmed', 'Processing', 'Delivered'], default: 'Confirmed' },
+  createdAt: { type: String, default: () => new Date().toISOString() },
+}, { versionKey: false });
+
+const UserModel = mongoose.models.User || mongoose.model<User>('User', userSchema);
+const ProductModel = mongoose.models.Product || mongoose.model<Product>('Product', productSchema);
+const OrderModel = mongoose.models.Order || mongoose.model<Order>('Order', orderSchema);
+
 const INITIAL_PRODUCTS: Product[] = [
-  {
-    productId: 'PROD-101',
-    productName: 'Aetheris ANC Wireless Studio Headphones',
-    productPrice: 349,
-    category: 'Audio Hardware',
-    quantity: 18,
-    description: 'Precision-machined matte aluminum frame with high-fidelity custom planar dynamic drivers, active noise cancellation, and 40-hour lossless playback.',
-    image: '/src/assets/images/product_wireless_headphones_1793540301698.jpg',
-    rating: 4.9,
-    isFeatured: true,
-  },
-  {
-    productId: 'PROD-102',
-    productName: 'VaporCraft Frosted Custom Mechanical Keyboard',
-    productPrice: 220,
-    category: 'Peripherals',
-    quantity: 12,
-    description: 'Smoked acrylic chassis with gasket mount architecture, hot-swappable tactile switches, and braided custom coiled aviator cable.',
-    image: '/src/assets/images/product_mechanical_keyboard_1793540303457.jpg',
-    rating: 4.8,
-    isFeatured: true,
-  },
-  {
-    productId: 'PROD-103',
-    productName: 'Apex Titan Aerospace Smartwatch',
-    productPrice: 499,
-    category: 'Wearables',
-    quantity: 9,
-    description: 'Grade 5 titanium unibody housing with sapphire crystal lens, dual-frequency GPS, biometric telemetry suite, and submersible 100m resistance.',
-    image: '/src/assets/images/product_smartwatch_titanium_1793540303070.jpg',
-    rating: 4.95,
-    isFeatured: true,
-  },
-  {
-    productId: 'PROD-104',
-    productName: 'HyperShield Minimalist Weatherproof Tech Pack',
-    productPrice: 175,
-    category: 'Accessories',
-    quantity: 25,
-    description: 'Ballistic waterproof composite weave with magnetic Fidlock closures, suspended 16-inch laptop chamber, and ergonomic load-distribution straps.',
-    image: '/src/assets/images/product_ergonomic_backpack_1793540303567.jpg',
-    rating: 4.7,
-    isFeatured: true,
-  },
-  {
-    productId: 'PROD-105',
-    productName: 'NovaGlow Frosted Ambient Light Bar',
-    productPrice: 89,
-    category: 'Peripherals',
-    quantity: 30,
-    description: 'Asymmetric optical desktop lamp with touch capacitive slider, 3000K-6500K adaptive color temperature, and zero-glare screen illumination.',
-    image: '/src/assets/images/product_mechanical_keyboard_1793540303457.jpg',
-    rating: 4.6,
-    isFeatured: false,
-  },
-  {
-    productId: 'PROD-106',
-    productName: 'Chronos Obsidian Leather Card Case',
-    productPrice: 65,
-    category: 'Accessories',
-    quantity: 40,
-    description: 'Full-grain vegetable-tanned Italian leather with RFID electromagnetic shielding and hand-beveled edges.',
-    image: '/src/assets/images/product_smartwatch_titanium_1793540303070.jpg',
-    rating: 4.5,
-    isFeatured: false,
-  }
-];
+  ['PROD-101', 'Aetheris ANC Wireless Studio Headphones', 349, 'Audio Hardware', 18, 'Precision-machined matte aluminum frame with high-fidelity custom planar dynamic drivers, active noise cancellation, and 40-hour lossless playback.', '/src/assets/images/product_wireless_headphones_1793540301698.jpg', 4.9, true],
+  ['PROD-102', 'VaporCraft Frosted Custom Mechanical Keyboard', 220, 'Peripherals', 12, 'Smoked acrylic chassis with gasket mount architecture, hot-swappable tactile switches, and braided custom coiled aviator cable.', '/src/assets/images/product_mechanical_keyboard_1793540303457.jpg', 4.8, true],
+  ['PROD-103', 'Apex Titan Aerospace Smartwatch', 499, 'Wearables', 9, 'Grade 5 titanium unibody housing with sapphire crystal lens, dual-frequency GPS, biometric telemetry suite, and submersible 100m resistance.', '/src/assets/images/product_smartwatch_titanium_1793540303070.jpg', 4.95, true],
+  ['PROD-104', 'HyperShield Minimalist Weatherproof Tech Pack', 175, 'Accessories', 25, 'Ballistic waterproof composite weave with magnetic Fidlock closures, suspended 16-inch laptop chamber, and ergonomic load-distribution straps.', '/src/assets/images/product_ergonomic_backpack_1793540303567.jpg', 4.7, true],
+  ['PROD-105', 'NovaGlow Frosted Ambient Light Bar', 89, 'Peripherals', 30, 'Asymmetric optical desktop lamp with touch capacitive slider, 3000K-6500K adaptive color temperature, and zero-glare screen illumination.', '/src/assets/images/product_mechanical_keyboard_1793540303457.jpg', 4.6, false],
+  ['PROD-106', 'Chronos Obsidian Leather Card Case', 65, 'Accessories', 40, 'Full-grain vegetable-tanned Italian leather with RFID electromagnetic shielding and hand-beveled edges.', '/src/assets/images/product_smartwatch_titanium_1793540303070.jpg', 4.5, false],
+].map(([productId, productName, productPrice, category, quantity, description, image, rating, isFeatured]) => ({
+  productId: productId as string,
+  productName: productName as string,
+  productPrice: productPrice as number,
+  category: category as string,
+  quantity: quantity as number,
+  description: description as string,
+  image: image as string,
+  rating: rating as number,
+  isFeatured: isFeatured as boolean,
+}));
 
-const INITIAL_USERS: User[] = [
-  {
-    username: 'Raghavendra',
-    emailId: 'user@example.com',
-    age: 24,
-    password: hashPassword('user123'),
-    role: 'user',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    username: 'Administrator',
-    emailId: 'admin@shop.com',
-    age: 32,
-    password: hashPassword('admin123'),
-    role: 'admin',
-    createdAt: new Date().toISOString(),
-  }
-];
-
-interface DatabaseSchema {
-  products: Product[];
-  users: User[];
-  orders: Order[];
+function withoutPassword(user: User): Omit<User, 'password'> {
+  const { password: _password, ...safeUser } = user;
+  return safeUser;
 }
 
 class Store {
-  private data: DatabaseSchema = {
-    products: [],
-    users: [],
-    orders: []
-  };
-
-  constructor() {
-    this.init();
+  async connect(): Promise<void> {
+    if (!mongoUri) {
+      throw new Error('MONGODB_URI is required. Configure it in .env before starting the server.');
+    }
+    await mongoose.connect(mongoUri);
   }
 
-  private init() {
+  async resetDefaults(): Promise<void> {
+    const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    await Promise.all([ProductModel.deleteMany({}), UserModel.deleteMany({}), OrderModel.deleteMany({})]);
+    await ProductModel.insertMany(INITIAL_PRODUCTS);
+    if (adminEmail && adminPassword && adminPassword.length >= 12) {
+      await UserModel.create({
+        username: 'Administrator',
+        emailId: adminEmail,
+        age: 32,
+        password: await bcrypt.hash(adminPassword, 12),
+        role: 'admin',
+      });
+    }
+  }
+
+  async ensureSeeded(): Promise<void> {
+    if (await ProductModel.exists({})) return;
+    await this.resetDefaults();
+  }
+
+  async findUserByEmail(emailId: string, includePassword = false): Promise<User | undefined> {
+    const query = UserModel.findOne({ emailId: emailId.trim().toLowerCase() });
+    if (includePassword) query.select('+password');
+    return (await query.lean()) ?? undefined;
+  }
+
+  async getAllUsers(): Promise<Omit<User, 'password'>[]> {
+    const users = await UserModel.find().lean();
+    return users.map(withoutPassword);
+  }
+
+  async insertUser(user: User): Promise<User> {
+    return (await UserModel.create(user)).toObject();
+  }
+
+  async updateUserComplete(emailId: string, updates: { username: string; age: number; password?: string }): Promise<User | null> {
+    const update: Record<string, unknown> = { username: updates.username, age: updates.age };
+    if (updates.password) update.password = await bcrypt.hash(updates.password, 12);
+    const updated = await UserModel.findOneAndUpdate(
+      { emailId: emailId.trim().toLowerCase() },
+      { $set: update },
+      { new: true, runValidators: true },
+    ).lean();
+    return updated ? withoutPassword(updated) as User : null;
+  }
+
+  async updateUserPartial(emailId: string, fields: { username?: string; age?: number; password?: string }): Promise<User | null> {
+    const update: Record<string, unknown> = {};
+    if (fields.username !== undefined) update.username = fields.username;
+    if (fields.age !== undefined) update.age = fields.age;
+    if (fields.password) update.password = await bcrypt.hash(fields.password, 12);
+    const updated = await UserModel.findOneAndUpdate(
+      { emailId: emailId.trim().toLowerCase() },
+      { $set: update },
+      { new: true, runValidators: true },
+    ).lean();
+    return updated ? withoutPassword(updated) as User : null;
+  }
+
+  async deleteUser(emailId: string): Promise<boolean> {
+    const result = await UserModel.deleteOne({ emailId: emailId.trim().toLowerCase() });
+    return result.deletedCount === 1;
+  }
+
+  async getAllProducts(): Promise<Product[]> {
+    return ProductModel.find().lean();
+  }
+
+  async findProductById(productId: string): Promise<Product | undefined> {
+    return (await ProductModel.findOne({ productId }).lean()) ?? undefined;
+  }
+
+  async addProduct(product: Product): Promise<Product> {
+    return (await ProductModel.create(product)).toObject();
+  }
+
+  async updateProduct(productId: string, updates: Partial<Product>): Promise<Product | null> {
+    return ProductModel.findOneAndUpdate({ productId }, { $set: updates }, { new: true, runValidators: true }).lean();
+  }
+
+  async deleteProduct(productId: string): Promise<boolean> {
+    const result = await ProductModel.deleteOne({ productId });
+    return result.deletedCount === 1;
+  }
+
+  async createOrder(order: Order): Promise<Order> {
+    return (await OrderModel.create(order)).toObject();
+  }
+
+  async getOrders(emailId?: string): Promise<Order[]> {
+    return OrderModel.find(emailId ? { emailId: emailId.toLowerCase() } : {}).sort({ createdAt: -1 }).lean();
+  }
+
+  async createOrderWithStock(order: Order, items: { productId: string; quantity: number }[]): Promise<Order | null> {
+    const session = await mongoose.startSession();
     try {
-      if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
-      }
-      if (fs.existsSync(DATA_FILE)) {
-        const raw = fs.readFileSync(DATA_FILE, 'utf-8');
-        this.data = JSON.parse(raw);
-      } else {
-        this.resetDefaults();
-      }
-    } catch (e) {
-      console.warn('Database fallback to defaults:', e);
-      this.resetDefaults();
+      let savedOrder: Order | null = null;
+      await session.withTransaction(async () => {
+        for (const item of items) {
+          const updated = await ProductModel.findOneAndUpdate(
+            { productId: item.productId, quantity: { $gte: item.quantity } },
+            { $inc: { quantity: -item.quantity } },
+            { new: true, session },
+          ).lean();
+          if (!updated) throw new Error('INSUFFICIENT_STOCK');
+        }
+        const [created] = await OrderModel.create([order], { session });
+        savedOrder = created.toObject();
+      });
+      return savedOrder;
+    } catch (error) {
+      if (error instanceof Error && error.message === 'INSUFFICIENT_STOCK') return null;
+      throw error;
+    } finally {
+      await session.endSession();
     }
-  }
-
-  public resetDefaults() {
-    this.data = {
-      products: JSON.parse(JSON.stringify(INITIAL_PRODUCTS)),
-      users: JSON.parse(JSON.stringify(INITIAL_USERS)),
-      orders: []
-    };
-    this.save();
-  }
-
-  private save() {
-    try {
-      fs.writeFileSync(DATA_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
-    } catch (err) {
-      console.error('Error saving database store:', err);
-    }
-  }
-
-  // --- Users Collection Methods (Matching Mongoose/MongoDB semantics) ---
-  public findUserByEmail(emailId: string): User | undefined {
-    return this.data.users.find(u => u.emailId.trim().toLowerCase() === emailId.trim().toLowerCase());
-  }
-
-  public getAllUsers(): Omit<User, 'password'>[] {
-    return this.data.users.map(({ password, ...rest }) => rest);
-  }
-
-  public insertUser(user: User): User {
-    const cleanEmail = user.emailId.trim().toLowerCase();
-    const newUser: User = {
-      ...user,
-      emailId: cleanEmail,
-      createdAt: new Date().toISOString(),
-      role: user.role || 'user'
-    };
-    this.data.users.push(newUser);
-    this.save();
-    return newUser;
-  }
-
-  public updateUserComplete(emailId: string, updates: Partial<User>): User | null {
-    const cleanEmail = emailId.trim().toLowerCase();
-    const index = this.data.users.findIndex(u => u.emailId.toLowerCase() === cleanEmail);
-    if (index === -1) return null;
-
-    const existing = this.data.users[index];
-    const updatedUser: User = {
-      ...existing,
-      username: updates.username !== undefined ? updates.username : existing.username,
-      age: updates.age !== undefined ? Number(updates.age) : existing.age,
-      password: updates.password ? hashPassword(updates.password) : existing.password,
-    };
-
-    this.data.users[index] = updatedUser;
-    this.save();
-    return updatedUser;
-  }
-
-  public updateUserPartial(emailId: string, fields: Partial<User>): User | null {
-    const cleanEmail = emailId.trim().toLowerCase();
-    const index = this.data.users.findIndex(u => u.emailId.toLowerCase() === cleanEmail);
-    if (index === -1) return null;
-
-    const existing = this.data.users[index];
-    if (fields.username !== undefined) existing.username = fields.username;
-    if (fields.age !== undefined) existing.age = Number(fields.age);
-    if (fields.password) existing.password = hashPassword(fields.password);
-    if (fields.role && ['user', 'admin'].includes(fields.role)) existing.role = fields.role;
-
-    this.data.users[index] = existing;
-    this.save();
-    return existing;
-  }
-
-  public deleteUser(emailId: string): boolean {
-    const cleanEmail = emailId.trim().toLowerCase();
-    const initialLen = this.data.users.length;
-    this.data.users = this.data.users.filter(u => u.emailId.toLowerCase() !== cleanEmail);
-    if (this.data.users.length !== initialLen) {
-      this.save();
-      return true;
-    }
-    return false;
-  }
-
-  // --- Products Collection Methods ---
-  public getAllProducts(): Product[] {
-    return this.data.products;
-  }
-
-  public findProductById(productId: string): Product | undefined {
-    return this.data.products.find(p => p.productId === productId);
-  }
-
-  public addProduct(product: Product): Product {
-    this.data.products.push(product);
-    this.save();
-    return product;
-  }
-
-  public updateProduct(productId: string, updates: Partial<Product>): Product | null {
-    const idx = this.data.products.findIndex(p => p.productId === productId);
-    if (idx === -1) return null;
-    this.data.products[idx] = { ...this.data.products[idx], ...updates };
-    this.save();
-    return this.data.products[idx];
-  }
-
-  public deleteProduct(productId: string): boolean {
-    const initialLen = this.data.products.length;
-    this.data.products = this.data.products.filter(p => p.productId !== productId);
-    if (this.data.products.length !== initialLen) {
-      this.save();
-      return true;
-    }
-    return false;
-  }
-
-  public decrementStock(items: { productId: string; quantity: number }[]): boolean {
-    // Verify all stock first
-    for (const item of items) {
-      const prod = this.findProductById(item.productId);
-      if (!prod || prod.quantity < item.quantity) {
-        return false;
-      }
-    }
-    // Deduct
-    for (const item of items) {
-      const prod = this.findProductById(item.productId);
-      if (prod) {
-        prod.quantity = Math.max(0, prod.quantity - item.quantity);
-      }
-    }
-    this.save();
-    return true;
-  }
-
-  // --- Orders Collection Methods ---
-  public createOrder(order: Order): Order {
-    this.data.orders.unshift(order);
-    this.save();
-    return order;
-  }
-
-  public getOrders(emailId?: string): Order[] {
-    if (emailId) {
-      const clean = emailId.trim().toLowerCase();
-      return this.data.orders.filter(o => o.emailId.toLowerCase() === clean);
-    }
-    return this.data.orders;
   }
 }
 
 export const db = new Store();
+export { bcrypt };

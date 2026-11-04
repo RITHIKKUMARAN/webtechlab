@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext.tsx';
 import { User as UserIcon, Calendar, Lock, CheckCircle2, AlertCircle, RefreshCw, Trash2, Edit3, Shield } from 'lucide-react';
 
 export const ProfileManagement: React.FC = () => {
-  const { user, updateUserSession, logout } = useAuth();
+  const { user, token, updateUserSession, logout } = useAuth();
 
   // Active operation tab
   const [activeTab, setActiveTab] = useState<'put' | 'patch' | 'delete'>('put');
@@ -50,7 +50,7 @@ export const ProfileManagement: React.FC = () => {
 
       const res = await fetch(url, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
 
@@ -102,7 +102,7 @@ export const ProfileManagement: React.FC = () => {
 
       const res = await fetch(url, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
 
@@ -139,6 +139,7 @@ export const ProfileManagement: React.FC = () => {
       const url = `/api/users?emailId=${encodeURIComponent(user.emailId)}`;
       const res = await fetch(url, {
         method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();

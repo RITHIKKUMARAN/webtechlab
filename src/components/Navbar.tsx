@@ -27,7 +27,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   soundEnabled,
   setSoundEnabled,
 }) => {
-  const { user, isAuthenticated, isAdmin, logout, switchPersona } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { totalItems, setIsCartOpen, recentAddedId } = useCart();
 
   const handleNav = (view: 'products' | 'profile' | 'admin' | 'api-tester' | 'orders') => {
@@ -137,6 +137,33 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Zone 3: Primary Action & Interactive Widgets */}
         <div className="flex items-center gap-2.5 shrink-0">
+          {!isAuthenticated ? (
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => openAuthModal('login')}
+                className="px-3 py-1.5 text-xs font-semibold text-slate-200 hover:text-white rounded-xl border border-white/15 bg-white/5 hover:bg-white/10"
+              >
+                Sign in
+              </button>
+              <button
+                onClick={() => openAuthModal('register')}
+                className="px-3 py-1.5 text-xs font-semibold text-white rounded-xl bg-indigo-600 hover:bg-indigo-500"
+              >
+                Create account
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:inline text-xs text-slate-300">{user?.username}</span>
+              <button
+                onClick={logout}
+                className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          )}
           
           {/* Zepto Scratch & Win Rewards Button */}
           <button
@@ -189,38 +216,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               {totalItems}
             </span>
           </button>
-
-          {/* 1-Click Persona Switcher (Raghavendra / Admin) */}
-          <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1">
-            <button
-              onClick={() => {
-                sound.playClick();
-                switchPersona('user');
-              }}
-              title="Switch to User Persona (Raghavendra)"
-              className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
-                user?.role === 'user'
-                  ? 'bg-indigo-600 text-white shadow'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              User
-            </button>
-            <button
-              onClick={() => {
-                sound.playClick();
-                switchPersona('admin');
-              }}
-              title="Switch to Admin Persona"
-              className={`px-2 py-1 text-[11px] font-semibold rounded-lg transition-all cursor-pointer ${
-                user?.role === 'admin'
-                  ? 'bg-amber-400 text-slate-950 font-bold shadow'
-                  : 'text-slate-400 hover:text-amber-200'
-              }`}
-            >
-              Admin
-            </button>
-          </div>
 
         </div>
 

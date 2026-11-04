@@ -74,7 +74,7 @@ export const AdminPanel: React.FC = () => {
         </div>
         <h2 className="text-xl font-bold text-white">Access Denied</h2>
         <p className="text-xs text-slate-400 mt-2">
-          Administrator privileges are required to view this portal. Please sign in using <code className="text-amber-300">admin@shop.com</code>.
+          Administrator privileges are required to view this portal. Please sign in with the configured administrator account.
         </p>
       </div>
     );
