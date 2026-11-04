@@ -3,15 +3,13 @@ import { useAuth } from '../context/AuthContext.tsx';
 import { useCart } from '../context/CartContext.tsx';
 import { sound } from '../utils/soundEffects.ts';
 import logoImage from '../assets/images/lumina_luxe_3d_logo_1793541903724.jpg';
-import { ShoppingBag, User as UserIcon, Shield, Terminal, LogOut, Sparkles, Gift, Volume2, VolumeX } from 'lucide-react';
+import { ShoppingBag, User as UserIcon, Shield, Terminal, LogOut, Gift, Volume2, VolumeX } from 'lucide-react';
 
 interface NavbarProps {
   currentView: 'products' | 'profile' | 'admin' | 'api-tester' | 'orders';
   setCurrentView: (view: 'products' | 'profile' | 'admin' | 'api-tester' | 'orders') => void;
   openAuthModal: (mode: 'login' | 'register') => void;
   openScratchCard: () => void;
-  customCursorEnabled: boolean;
-  setCustomCursorEnabled: (enabled: boolean) => void;
   soundEnabled: boolean;
   setSoundEnabled: (enabled: boolean) => void;
 }
@@ -21,8 +19,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   setCurrentView,
   openAuthModal,
   openScratchCard,
-  customCursorEnabled,
-  setCustomCursorEnabled,
   soundEnabled,
   setSoundEnabled,
 }) => {
@@ -172,19 +168,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
           >
             {soundEnabled ? <Volume2 className="w-4 h-4 text-indigo-400" /> : <VolumeX className="w-4 h-4" />}
-          </button>
-
-          {/* Custom Cursor Toggle */}
-          <button
-            onClick={() => {
-              sound.playClick();
-              setCustomCursorEnabled(!customCursorEnabled);
-            }}
-            title={customCursorEnabled ? "Holographic Kinetic Cursor Active" : "Default OS Cursor Active"}
-            className="header-setting hidden xl:flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all cursor-pointer font-mono"
-          >
-            <Sparkles className={`w-3.5 h-3.5 ${customCursorEnabled ? 'text-indigo-400' : 'text-slate-500'}`} />
-            <span>{customCursorEnabled ? 'Kinetic' : 'OS'}</span>
           </button>
 
           {/* Cart Trigger */}

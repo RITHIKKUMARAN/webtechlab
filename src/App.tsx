@@ -139,8 +139,6 @@ function ShoppingAppContent() {
         setCurrentView={setCurrentView}
         openAuthModal={openAuth}
         openScratchCard={() => setScratchCardOpen(true)}
-        customCursorEnabled={false}
-        setCustomCursorEnabled={() => undefined}
         soundEnabled={soundEnabled}
         setSoundEnabled={setSoundEnabled}
       />
