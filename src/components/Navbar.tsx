@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useCart } from '../context/CartContext.tsx';
 import { sound } from '../utils/soundEffects.ts';
+import logoImage from '../assets/images/lumina_luxe_3d_logo_1793541903724.jpg';
 import { ShoppingBag, User as UserIcon, Shield, Terminal, LogOut, Sparkles, Gift, Volume2, VolumeX } from 'lucide-react';
 
 interface NavbarProps {
@@ -51,7 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-white/20 shadow-md group-hover:shadow-[0_0_15px_#818cf8] transition-all">
               <img
-                src="/src/assets/images/lumina_luxe_3d_logo_1793541903724.jpg"
+                src={logoImage}
                 alt="Logo"
                 className="w-full h-full object-cover"
               />
@@ -82,7 +83,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-slate-400 border-transparent hover:text-white'
             }`}
           >
-            User Profile (REST)
+            Profile
           </button>
 
           <button
@@ -98,26 +99,26 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={() => handleNav('admin')}
-            className={`transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5 pb-0.5 border-b-2 ${
+            className={`utility-nav transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5 pb-0.5 border-b-2 ${
               currentView === 'admin'
                 ? 'text-amber-300 border-amber-400'
                 : 'text-slate-400 border-transparent hover:text-amber-200'
             }`}
           >
             <Shield className="w-3.5 h-3.5" />
-            <span>Admin Portal</span>
+            <span>Admin</span>
           </button>
 
           <button
             onClick={() => handleNav('api-tester')}
-            className={`transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5 pb-0.5 border-b-2 ${
+            className={`utility-nav transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5 pb-0.5 border-b-2 ${
               currentView === 'api-tester'
                 ? 'text-cyan-300 border-cyan-400'
                 : 'text-slate-400 border-transparent hover:text-cyan-200'
             }`}
           >
             <Terminal className="w-3.5 h-3.5" />
-            <span>REST API Tester</span>
+            <span>API</span>
           </button>
         </nav>
 
@@ -180,7 +181,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               setCustomCursorEnabled(!customCursorEnabled);
             }}
             title={customCursorEnabled ? "Holographic Kinetic Cursor Active" : "Default OS Cursor Active"}
-            className="hidden lg:flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all cursor-pointer font-mono"
+            className="header-setting hidden xl:flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all cursor-pointer font-mono"
           >
             <Sparkles className={`w-3.5 h-3.5 ${customCursorEnabled ? 'text-indigo-400' : 'text-slate-500'}`} />
             <span>{customCursorEnabled ? 'Kinetic' : 'OS'}</span>

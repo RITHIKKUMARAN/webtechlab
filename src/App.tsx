@@ -13,7 +13,6 @@ import { ProfileManagement } from './components/ProfileManagement.tsx';
 import { AdminPanel } from './components/AdminPanel.tsx';
 import { ApiTester } from './components/ApiTester.tsx';
 import { OrdersView } from './components/OrdersView.tsx';
-import { HeroScene } from './components/HeroScene.tsx';
 import { sound } from './utils/soundEffects.ts';
 import {
   Search,
@@ -139,13 +138,6 @@ function ShoppingAppContent() {
       {/* Upgraded Kinetic Tactical Cursor */}
       <CustomCursor enabled={customCursorEnabled} />
 
-      {/* Glassmorphic Ambient Neon Gradients */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-[25%] -left-[10%] w-[650px] h-[650px] rounded-full bg-indigo-600/15 blur-[140px] animate-pulse" />
-        <div className="absolute top-[30%] -right-[15%] w-[550px] h-[550px] rounded-full bg-cyan-500/12 blur-[130px]" />
-        <div className="absolute -bottom-[20%] left-[25%] w-[700px] h-[700px] rounded-full bg-purple-600/12 blur-[160px]" />
-      </div>
-
       {/* Top Bar Contract (1 Row, 3 Zones) */}
       <Navbar
         currentView={currentView}
@@ -191,15 +183,15 @@ function ShoppingAppContent() {
               </button>
             </div>
 
-            {/* Storefront Hero Banner */}
+            {/* Storefront Hero */}
             <div className="hero-panel relative overflow-hidden reveal-section">
               <div className="hero-copy relative z-10">
-                <div className="eyebrow"><span className="eyebrow-dot" /> Curated technology, considered design</div>
+                <div className="eyebrow"><span className="eyebrow-dot" /> Lumina Luxe · Everyday technology</div>
                 <h1 className="hero-title">
-                  Objects for a <em>more capable</em> everyday.
+                  Better tools for <em>everyday work.</em>
                 </h1>
                 <p className="hero-subtitle">
-                  Thoughtful hardware selected for the way you work, move, and create. Discover the collection and make it yours.
+                  Shop dependable audio, wearables, peripherals, and accessories selected for work, travel, and home.
                 </p>
                 <div className="hero-actions">
                   <button
@@ -219,14 +211,17 @@ function ShoppingAppContent() {
                     }}
                     className="px-3.5 py-2 text-xs font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors cursor-pointer"
                   >
-                    Browse by category
+                    See all products
                   </button>
                 </div>
               </div>
-              <HeroScene />
-              <div className="hero-meta">
-                <span>01 — The collection</span>
-                <span>Real inventory · Secure checkout</span>
+              <div className="hero-summary">
+                <div className="hero-summary-label">SHOP WITH CONFIDENCE</div>
+                <div className="hero-summary-grid">
+                  <div><strong>Live</strong><span>inventory</span></div>
+                  <div><strong>Secure</strong><span>checkout</span></div>
+                  <div><strong>Simple</strong><span>returns</span></div>
+                </div>
               </div>
             </div>
 
