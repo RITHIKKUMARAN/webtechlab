@@ -7,7 +7,6 @@ import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import { parse as parseCookies, serialize as serializeCookie } from 'cookie';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
 import { z } from 'zod';
 import { db, bcrypt } from './src/server/db.ts';
 import { Order, Product, User } from './src/types/index.ts';
@@ -388,6 +387,7 @@ async function startServer(): Promise<void> {
   await db.ensureSeeded();
   const isProd = process.env.NODE_ENV === 'production';
   if (!isProd) {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
     app.use(vite.middlewares);
   } else {
