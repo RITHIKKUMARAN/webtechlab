@@ -43,6 +43,7 @@ function ShoppingAppContent() {
   // Products State (Exercise-8 Page 3)
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [productLoadError, setProductLoadError] = useState<string | null>(null);
 
   // Search & Filtering
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,6 +54,7 @@ function ShoppingAppContent() {
   // Exercise-8 Page 3: Retrieve products using ONLY HTTP GET method
   const fetchProducts = async () => {
     setLoadingProducts(true);
+    setProductLoadError(null);
     try {
       const headers: Record<string, string> = {};
       if (token) {
@@ -69,9 +71,18 @@ function ShoppingAppContent() {
 
       if (res.ok) {
         setProducts(data.products || []);
+        return;
       }
+      setProducts([]);
+      setProductLoadError(
+        res.status === 401
+          ? 'Sign in or create an account to browse the collection.'
+          : data.error || 'The catalog is temporarily unavailable. Please try again.',
+      );
     } catch {
       setLoadingProducts(false);
+      setProducts([]);
+      setProductLoadError('Unable to reach the catalog service. Please try again.');
     }
   };
 
@@ -298,6 +309,18 @@ function ShoppingAppContent() {
               {loadingProducts ? (
                 <div className="py-24 text-center text-xs text-slate-400 font-mono">
                   Loading Products from MongoDB Collection...
+                </div>
+              ) : productLoadError ? (
+                <div className="glass-panel rounded-2xl border border-white/10 p-12 text-center space-y-3">
+                  <h3 className="text-base font-semibold text-white">Catalog unavailable</h3>
+                  <p className="text-xs text-slate-400 max-w-sm mx-auto">{productLoadError}</p>
+                  <button
+                    type="button"
+                    onClick={fetchProducts}
+                    className="mt-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500"
+                  >
+                    Try again
+                  </button>
                 </div>
               ) : sortedProducts.length === 0 ? (
                 <div className="glass-panel rounded-2xl border border-white/10 p-12 text-center text-slate-400 space-y-3">
