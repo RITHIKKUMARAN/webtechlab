@@ -118,6 +118,17 @@ app.use(express.json({ limit: '32kb' }));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: true, legacyHeaders: false }));
 app.use('/api/login', rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, message: { error: 'Too many login attempts. Try again later.' } }));
 
+app.get('/api/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'northstar-supply',
+    configuration: {
+      jwt: Boolean(JWT_SECRET && JWT_SECRET.length >= 32),
+      mongo: Boolean(process.env.MONGODB_URI),
+    },
+  });
+});
+
 let databaseReady: Promise<void> | null = null;
 app.use('/api', async (_req, res, next) => {
   try {

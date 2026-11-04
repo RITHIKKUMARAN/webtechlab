@@ -83,7 +83,11 @@ class Store {
     if (!mongoUri) {
       throw new Error('MONGODB_URI is required. Configure it in .env before starting the server.');
     }
-    await mongoose.connect(mongoUri);
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 8000,
+      connectTimeoutMS: 8000,
+      socketTimeoutMS: 8000,
+    });
   }
 
   async resetDefaults(): Promise<void> {
