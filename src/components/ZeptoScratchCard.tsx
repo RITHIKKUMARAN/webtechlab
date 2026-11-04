@@ -163,7 +163,7 @@ export const ZeptoScratchCard: React.FC<ZeptoScratchCardProps> = ({ isOpen, onCl
       for (let x = 0; x < width; x += step) {
         const index = (y * width + x) * 4;
         totalSamples++;
-        if (data[index + 3] === 0) {
+        if (data[index + 3] < 250) {
           transparentPixels++;
         }
       }

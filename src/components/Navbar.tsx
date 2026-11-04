@@ -166,21 +166,23 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {/* Cart Trigger */}
-          <button
-            onClick={() => {
-              sound.playWhoosh();
-              setIsCartOpen(true);
-            }}
-            className={`relative p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 transition-all cursor-pointer flex items-center gap-2 ${
-              recentAddedId ? 'scale-105 border-indigo-500 bg-indigo-50 shadow-[0_0_20px_rgba(99,102,241,0.2)]' : ''
-            }`}
-            title="Open Shopping Cart"
-          >
-            <ShoppingBag className="w-4.5 h-4.5" />
-            <span className="text-xs font-semibold tabular-nums px-1.5 py-0.5 rounded-full bg-indigo-500 text-white min-w-5 text-center font-mono">
-              {totalItems}
-            </span>
-          </button>
+          {isAuthenticated && (
+            <button
+              onClick={() => {
+                sound.playWhoosh();
+                setIsCartOpen(true);
+              }}
+              className={`relative p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 transition-all cursor-pointer flex items-center gap-2 ${
+                recentAddedId ? 'scale-105 border-indigo-500 bg-indigo-50 shadow-[0_0_20px_rgba(99,102,241,0.2)]' : ''
+              }`}
+              title="Open Shopping Cart"
+            >
+              <ShoppingBag className="w-4.5 h-4.5" />
+              <span className="text-xs font-semibold tabular-nums px-1.5 py-0.5 rounded-full bg-indigo-500 text-white min-w-5 text-center font-mono">
+                {totalItems}
+              </span>
+            </button>
+          )}
 
         </div>
 

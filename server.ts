@@ -15,9 +15,12 @@ import { Order, Product, User } from './src/types/index.ts';
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
 const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET || JWT_SECRET.length < 32) {
-  throw new Error('JWT_SECRET must be configured and at least 32 characters long.');
-}
+const getJwtSecret = (): string => {
+  if (!JWT_SECRET || JWT_SECRET.length < 32) {
+    throw new Error('JWT_SECRET must be configured and at least 32 characters long.');
+  }
+  return JWT_SECRET;
+};
 
 type AuthUser = Pick<User, 'emailId' | 'username' | 'role' | 'sessionVersion'>;
 type AuthRequest = Request & { user?: AuthUser };
@@ -36,7 +39,7 @@ const cookieOptions = {
   maxAge: 15 * 60,
 };
 
-const tokenFor = (user: AuthUser): string => jwt.sign(user, JWT_SECRET, {
+const tokenFor = (user: AuthUser): string => jwt.sign(user, getJwtSecret(), {
   algorithm: 'HS256',
   expiresIn: '15m',
 });
@@ -52,7 +55,7 @@ const auth = async (req: AuthRequest, res: Response, next: NextFunction): Promis
     return;
   }
   try {
-    const payload = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
+    const payload = jwt.verify(token, getJwtSecret(), { algorithms: ['HS256'] });
     if (typeof payload !== 'object' || !payload.emailId || !payload.role || !payload.username || typeof payload.sessionVersion !== 'number') {
       res.status(401).json({ error: 'Invalid authentication token.' });
       return;
@@ -118,13 +121,19 @@ app.use('/api/login', rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, message: 
 let databaseReady: Promise<void> | null = null;
 app.use('/api', async (_req, res, next) => {
   try {
+    getJwtSecret();
     databaseReady ??= db.connect().then(() => db.ensureSeeded());
     await databaseReady;
     next();
   } catch (error) {
     databaseReady = null;
     console.error('Database connection failed:', error);
-    res.status(503).json({ error: 'Database is temporarily unavailable.' });
+    const message = error instanceof Error ? error.message : '';
+    if (message.includes('JWT_SECRET')) {
+      res.status(503).json({ error: 'Server authentication is not configured. Add a JWT_SECRET of at least 32 characters in Vercel.' });
+      return;
+    }
+    res.status(503).json({ error: 'Database is temporarily unavailable. Check the MONGODB_URI environment variable.' });
   }
 });
 

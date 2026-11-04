@@ -66,7 +66,13 @@ function ShoppingAppContent() {
         headers,
       });
 
-      const data = await res.json();
+      const responseText = await res.text();
+      let data: { products?: Product[]; error?: string } = {};
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        data.error = responseText || `Request failed with status ${res.status}.`;
+      }
       setLoadingProducts(false);
 
       if (res.ok) {
@@ -84,6 +90,16 @@ function ShoppingAppContent() {
       setProducts([]);
       setProductLoadError('Unable to reach the catalog service. Please try again.');
     }
+  };
+
+  const requireAuthentication = () => {
+    if (isAuthenticated) return true;
+    openAuth('login');
+    return false;
+  };
+
+  const openScratchCard = () => {
+    if (requireAuthentication()) setScratchCardOpen(true);
   };
 
   useEffect(() => {
@@ -115,7 +131,7 @@ function ShoppingAppContent() {
     fetchProducts();
     // Prompt the user to reveal their post-purchase store offer.
     setTimeout(() => {
-      setScratchCardOpen(true);
+      openScratchCard();
     }, 1200);
   };
 
@@ -148,7 +164,7 @@ function ShoppingAppContent() {
         currentView={currentView}
         setCurrentView={setCurrentView}
         openAuthModal={openAuth}
-        openScratchCard={() => setScratchCardOpen(true)}
+        openScratchCard={openScratchCard}
         soundEnabled={soundEnabled}
         setSoundEnabled={setSoundEnabled}
       />
@@ -177,7 +193,7 @@ function ShoppingAppContent() {
               <button
                 onClick={() => {
                   sound.playClick();
-                  setScratchCardOpen(true);
+                  openScratchCard();
                 }}
                 className="px-3.5 py-1.5 text-xs font-bold text-amber-950 bg-amber-300 hover:bg-amber-400 rounded-xl shadow-md transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
               >
@@ -383,7 +399,7 @@ function ShoppingAppContent() {
       </main>
 
       {/* Floating Drag-and-Drop Cart Widget */}
-      <CartWidget onOpenCheckout={() => setCheckoutModalOpen(true)} />
+      {isAuthenticated && <CartWidget onOpenCheckout={() => setCheckoutModalOpen(true)} />}
 
       {/* Store offer modal */}
       <ZeptoScratchCard
@@ -459,6 +475,7 @@ function ShoppingAppContent() {
               <button
                 onClick={() => {
                   sound.playSuccess();
+                  if (!requireAuthentication()) return;
                   addToCart(selectedProduct, 1);
                   setSelectedProduct(null);
                 }}
@@ -482,7 +499,7 @@ function ShoppingAppContent() {
             <button
               onClick={() => {
                 sound.playClick();
-                setScratchCardOpen(true);
+                openScratchCard();
               }}
               className="text-amber-400 hover:text-amber-300 underline cursor-pointer"
             >

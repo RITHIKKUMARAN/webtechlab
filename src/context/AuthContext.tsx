@@ -11,6 +11,15 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const readResponse = async (res: Response): Promise<{ data: Record<string, any>; message?: string }> => {
+  const text = await res.text();
+  try {
+    return { data: text ? JSON.parse(text) : {} };
+  } catch {
+    return { data: {}, message: text || `Request failed with status ${res.status}.` };
+  }
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -38,9 +47,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({ emailId, password }),
       });
 
-      const data = await res.json();
+      const { data, message } = await readResponse(res);
       if (!res.ok) {
-        return { success: false, message: data.error || 'Login failed.' };
+        return { success: false, message: data.error || message || 'Login failed.' };
       }
 
       setToken('cookie');
@@ -59,9 +68,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify(userData),
       });
 
-      const data = await res.json();
+      const { data, message } = await readResponse(res);
       if (!res.ok) {
-        return { success: false, message: data.error || 'Registration failed.' };
+        return { success: false, message: data.error || message || 'Registration failed.' };
       }
 
       if (data.user) {
