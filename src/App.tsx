@@ -3,7 +3,6 @@ import { AuthProvider, useAuth } from './context/AuthContext.tsx';
 import { CartProvider, useCart } from './context/CartContext.tsx';
 import { Product, Order } from './types/index.ts';
 import { Navbar } from './components/Navbar.tsx';
-import { CustomCursor } from './components/CustomCursor.tsx';
 import { ProductCard } from './components/ProductCard.tsx';
 import { CartWidget } from './components/CartWidget.tsx';
 import { AuthModal } from './components/AuthModal.tsx';
@@ -40,7 +39,6 @@ function ShoppingAppContent() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Settings
-  const [customCursorEnabled, setCustomCursorEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   // Products State (Exercise-8 Page 3)
@@ -133,19 +131,16 @@ function ShoppingAppContent() {
   });
 
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white">
+    <div className="relative min-h-screen bg-[#f5f7fb] text-[#172033] flex flex-col selection:bg-indigo-500 selection:text-white">
       
-      {/* Upgraded Kinetic Tactical Cursor */}
-      <CustomCursor enabled={customCursorEnabled} />
-
       {/* Top Bar Contract (1 Row, 3 Zones) */}
       <Navbar
         currentView={currentView}
         setCurrentView={setCurrentView}
         openAuthModal={openAuth}
         openScratchCard={() => setScratchCardOpen(true)}
-        customCursorEnabled={customCursorEnabled}
-        setCustomCursorEnabled={setCustomCursorEnabled}
+        customCursorEnabled={false}
+        setCustomCursorEnabled={() => undefined}
         soundEnabled={soundEnabled}
         setSoundEnabled={setSoundEnabled}
       />
@@ -186,7 +181,7 @@ function ShoppingAppContent() {
             {/* Storefront Hero */}
             <div className="hero-panel relative overflow-hidden reveal-section">
               <div className="hero-copy relative z-10">
-                <div className="eyebrow"><span className="eyebrow-dot" /> Lumina Luxe · Designed for everyday life</div>
+                <div className="eyebrow"><span className="eyebrow-dot" /> Northstar Supply · Designed for everyday life</div>
                 <h1 className="hero-title">
                   Technology that <em>fits your life.</em>
                 </h1>
@@ -462,7 +457,7 @@ function ShoppingAppContent() {
       <footer className="border-t border-white/10 py-6 px-4 sm:px-6 lg:px-8 mt-12 bg-slate-950/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 font-mono">
           <div>
-            <span>Lumina Luxe MERN Shopping Platform · Shiv Nadar University CS3801 Exercise-8</span>
+            <span>Northstar Supply · Secure technology marketplace</span>
           </div>
           <div className="flex items-center gap-4">
             <button

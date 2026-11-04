@@ -41,7 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-slate-950/75 border-b border-white/10 transition-colors">
+    <header className="sticky top-0 z-40 w-full bg-white border-b border-slate-200 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-6">
         
         {/* Zone 1: Brand Wordmark with periodic subtle glow & Mascot Avatar */}
@@ -57,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="w-full h-full object-cover"
               />
             </div>
-            <span className="font-display">Lumina Luxe</span>
+            <span className="font-display">Northstar Supply</span>
           </button>
 
         </div>
