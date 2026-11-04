@@ -186,12 +186,12 @@ function ShoppingAppContent() {
             {/* Storefront Hero */}
             <div className="hero-panel relative overflow-hidden reveal-section">
               <div className="hero-copy relative z-10">
-                <div className="eyebrow"><span className="eyebrow-dot" /> Lumina Luxe · Everyday technology</div>
+                <div className="eyebrow"><span className="eyebrow-dot" /> Lumina Luxe · Designed for everyday life</div>
                 <h1 className="hero-title">
-                  Better tools for <em>everyday work.</em>
+                  Technology that <em>fits your life.</em>
                 </h1>
                 <p className="hero-subtitle">
-                  Shop dependable audio, wearables, peripherals, and accessories selected for work, travel, and home.
+                  Discover dependable audio, wearables, peripherals, and accessories for work, travel, and home.
                 </p>
                 <div className="hero-actions">
                   <button
@@ -202,7 +202,7 @@ function ShoppingAppContent() {
                     className="px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Shop the collection</span>
+                    <span>Shop now</span>
                   </button>
                   <button
                     onClick={() => {
@@ -211,7 +211,7 @@ function ShoppingAppContent() {
                     }}
                     className="px-3.5 py-2 text-xs font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors cursor-pointer"
                   >
-                    See all products
+                    Browse collection
                   </button>
                 </div>
               </div>
@@ -229,10 +229,10 @@ function ShoppingAppContent() {
             <div ref={catalogRef} className="space-y-3.5 scroll-mt-24 reveal-section">
               <div className="section-heading">
                 <div>
-                  <span className="section-kicker">The collection</span>
-                  <h2>Tools for the way you work.</h2>
+                  <span className="section-kicker">Featured collection</span>
+                  <h2>Find your next essential.</h2>
                 </div>
-                <p>Real products, live availability, and secure checkout in one considered catalog.</p>
+                <p>Explore thoughtfully selected products with live availability and secure checkout.</p>
               </div>
               <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
                 
@@ -262,7 +262,7 @@ function ShoppingAppContent() {
                 {/* Comprehensive Sorting Options */}
                 <div className="flex items-center gap-2">
                   <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="text-xs text-slate-400 font-medium">Sort Catalog:</span>
+                  <span className="text-xs text-slate-400 font-medium">Sort by:</span>
                   <select
                     value={sortBy}
                     onChange={(e) => {
@@ -472,7 +472,7 @@ function ShoppingAppContent() {
               }}
               className="text-amber-400 hover:text-amber-300 underline cursor-pointer"
             >
-              Store offer
+              Offers
             </button>
             <span>·</span>
             <span>REST API Verified</span>

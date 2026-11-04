@@ -72,7 +72,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-slate-400 border-transparent hover:text-white'
             }`}
           >
-            Catalog
+            Shop
           </button>
 
           <button
@@ -83,7 +83,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-slate-400 border-transparent hover:text-white'
             }`}
           >
-            Profile
+            Account
           </button>
 
           <button
@@ -94,7 +94,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-slate-400 border-transparent hover:text-white'
             }`}
           >
-            My Orders
+            Orders
           </button>
 
           <button
@@ -106,7 +106,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             <Shield className="w-3.5 h-3.5" />
-            <span>Admin</span>
+            <span>Admin dashboard</span>
           </button>
 
           <button
@@ -118,7 +118,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             <Terminal className="w-3.5 h-3.5" />
-            <span>API</span>
+            <span>API console</span>
           </button>
         </nav>
 
@@ -162,7 +162,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             title="Open the store offer"
           >
             <Gift className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Store offer</span>
+            <span className="hidden sm:inline">Offers</span>
           </button>
 
           {/* Sound FX Toggle */}
