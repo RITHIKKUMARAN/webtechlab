@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
-import { X, CheckCircle2, ShieldCheck, MapPin, Phone, CreditCard, Sparkles } from 'lucide-react';
+import { X, CheckCircle2, ShieldCheck, MapPin, Phone, CreditCard } from 'lucide-react';
 import { Order } from '../types/index.ts';
 
 interface CheckoutModalProps {
@@ -279,7 +279,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 disabled={loading}
                 className="w-full py-3 px-4 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-lg hover:shadow-indigo-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                <Sparkles className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4" />
                 <span>{loading ? 'Processing Order...' : 'Confirm Order & Deduct Stock'}</span>
               </button>
             </form>

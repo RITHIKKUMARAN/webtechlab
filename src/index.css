@@ -2,8 +2,8 @@
 
 :root {
   font-family: 'DM Sans', system-ui, sans-serif;
-  color: #172033;
-  background: #f5f7fb;
+  color: #f5f3ff;
+  background: #080711;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -15,8 +15,11 @@
 body {
   min-width: 320px;
   margin: 0;
-  background: #f5f7fb;
-  color: #172033;
+  background:
+    radial-gradient(circle at 12% -10%, rgba(91, 63, 180, .2), transparent 32rem),
+    radial-gradient(circle at 90% 20%, rgba(48, 30, 117, .16), transparent 30rem),
+    #080711;
+  color: #f5f3ff;
 }
 
 button,
@@ -46,12 +49,12 @@ pre,
   align-items: center;
   overflow: hidden;
   padding: clamp(2rem, 5vw, 5rem);
-  border: 1px solid #dce3ed;
+  border: 1px solid #272044;
   border-radius: 1.5rem;
   background:
-    radial-gradient(circle at 90% 15%, rgba(79, 70, 229, .14), transparent 28%),
-    linear-gradient(120deg, #ffffff 0%, #eef3f8 100%);
-  box-shadow: 0 22px 50px rgba(27, 39, 61, .1);
+    radial-gradient(circle at 90% 15%, rgba(124, 92, 255, .18), transparent 28%),
+    linear-gradient(120deg, #11101b 0%, #17132a 100%);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, .28);
   scroll-margin-top: 6rem;
 }
 
@@ -64,7 +67,7 @@ pre,
 .hero-title {
   max-width: 620px;
   margin: 1rem 0;
-  color: #172033;
+  color: #f8f6ff;
   font-size: clamp(2.5rem, 6vw, 5rem);
   line-height: .98;
   letter-spacing: -.075em;
@@ -72,13 +75,13 @@ pre,
 }
 
 .hero-title em {
-  color: #4f46e5;
+  color: #a78bfa;
   font-style: normal;
 }
 
 .hero-subtitle {
   max-width: 490px;
-  color: #526176;
+  color: #b8b0d1;
   font-size: 1rem;
   line-height: 1.7;
 }
@@ -87,7 +90,7 @@ pre,
   display: flex;
   align-items: center;
   gap: .55rem;
-  color: #657187;
+  color: #aaa1c5;
   font-size: .68rem;
   letter-spacing: .14em;
   text-transform: uppercase;
@@ -97,7 +100,7 @@ pre,
   width: .45rem;
   height: .45rem;
   border-radius: 999px;
-  background: #4f46e5;
+  background: #a78bfa;
 }
 
 .hero-actions {
@@ -116,14 +119,14 @@ pre,
 
 .hero-actions button:first-child {
   color: #fff;
-  background: #4f46e5;
-  box-shadow: 0 8px 18px rgba(79, 70, 229, .2);
+  background: #7654e8;
+  box-shadow: 0 8px 18px rgba(118, 84, 232, .28);
 }
 
 .hero-actions button:last-child {
-  color: #344054;
-  border: 1px solid #d2dae6;
-  background: #fff;
+  color: #e7e1fb;
+  border: 1px solid #3a3158;
+  background: #1b172b;
 }
 
 .hero-actions button:hover {
@@ -136,14 +139,14 @@ pre,
   bottom: 3rem;
   width: 240px;
   padding: 1rem;
-  color: #40506a;
-  border: 1px solid #d4ddea;
-  background: rgba(255, 255, 255, .7);
+  color: #d7d0eb;
+  border: 1px solid #332950;
+  background: rgba(25, 21, 43, .82);
   border-radius: 1rem;
 }
 
 .hero-summary-label {
-  color: #526176;
+  color: #aaa1c5;
   font-size: .62rem;
   letter-spacing: .14em;
   font-weight: 800;
@@ -162,20 +165,20 @@ pre,
 }
 
 .hero-summary-grid strong {
-  color: #172033;
+  color: #f5f2ff;
   font-size: .78rem;
 }
 
 .hero-summary-grid span {
-  color: #6b7890;
+  color: #9c93b6;
   font-size: .65rem;
 }
 
 .store-offer {
-  color: #5b4300;
-  background: #fff8e6;
-  border: 1px solid #f0d58b;
-  box-shadow: 0 10px 24px rgba(84, 61, 0, .06);
+  color: #f3d994;
+  background: #211b2c;
+  border: 1px solid #695129;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
 }
 
 .section-heading {
@@ -188,20 +191,20 @@ pre,
 
 .section-heading h2 {
   margin-top: .35rem;
-  color: #172033;
+  color: #f5f2ff;
   font-size: clamp(1.7rem, 3vw, 2.4rem);
   letter-spacing: -.05em;
 }
 
 .section-heading p {
   max-width: 22rem;
-  color: #6b7890;
+  color: #aaa1c5;
   font-size: .82rem;
   line-height: 1.65;
 }
 
 .section-kicker {
-  color: #4f46e5;
+  color: #a78bfa;
   font-size: .68rem;
   letter-spacing: .16em;
   text-transform: uppercase;
@@ -210,9 +213,9 @@ pre,
 
 .glass-panel,
 .glass-panel-interactive {
-  background: #fff;
-  border: 1px solid #e0e6ef;
-  box-shadow: 0 12px 30px rgba(27, 39, 61, .07);
+  background: #12101c;
+  border: 1px solid #292241;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .22);
 }
 
 .glass-panel-interactive {
@@ -220,19 +223,20 @@ pre,
 }
 
 .glass-panel-interactive:hover {
-  border-color: #b7c1d3;
-  box-shadow: 0 18px 34px rgba(27, 39, 61, .12);
+  border-color: #59458d;
+  box-shadow: 0 18px 34px rgba(0, 0, 0, .32);
   transform: translateY(-3px);
 }
 
 .glass-input {
-  background: #fff;
-  border: 1px solid #d5deea;
+  color: #f5f2ff;
+  background: #0e0c17;
+  border: 1px solid #332950;
 }
 
 .glass-input:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, .14);
+  border-color: #9274f4;
+  box-shadow: 0 0 0 3px rgba(146, 116, 244, .18);
 }
 
 .reveal-section {
@@ -296,10 +300,40 @@ pre,
 }
 
 ::-webkit-scrollbar-track {
-  background: #edf1f6;
+  background: #0e0c17;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #bac5d5;
+  background: #443568;
   border-radius: 999px;
 }
+
+/* Keep Tailwind utility surfaces aligned with the dark storefront theme. */
+.bg-white { background-color: #12101c !important; }
+.bg-slate-50 { background-color: #17132a !important; }
+.bg-slate-100 { background-color: #211b36 !important; }
+.bg-slate-950 { background-color: #080711 !important; }
+.bg-indigo-50 { background-color: #211a3a !important; }
+.bg-indigo-600,
+.bg-indigo-700 { background-color: #7654e8 !important; }
+.bg-amber-50 { background-color: #2a2119 !important; }
+.bg-amber-100 { background-color: #38291a !important; }
+.text-slate-950 { color: #f8f6ff !important; }
+.text-slate-700,
+.text-slate-600 { color: #c1b9d6 !important; }
+.text-slate-500 { color: #a59bbd !important; }
+.text-indigo-700,
+.text-indigo-600 { color: #b29bff !important; }
+.text-amber-800,
+.text-amber-700 { color: #f3d994 !important; }
+.border-slate-200,
+.border-slate-300 { border-color: #332950 !important; }
+.border-indigo-500,
+.border-indigo-600 { border-color: #9274f4 !important; }
+.border-amber-300,
+.border-amber-600 { border-color: #8a682d !important; }
+.hover\:bg-slate-50:hover { background-color: #211b36 !important; }
+.hover\:bg-indigo-500:hover,
+.hover\:bg-indigo-600:hover { background-color: #8768f2 !important; }
+.hover\:text-slate-950:hover { color: #ffffff !important; }
+.hover\:text-indigo-700:hover { color: #c5b5ff !important; }

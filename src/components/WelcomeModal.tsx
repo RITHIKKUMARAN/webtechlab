@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { sound } from '../utils/soundEffects.ts';
 import { useAuth } from '../context/AuthContext.tsx';
-import { Sparkles, ShoppingBag, Shield, ArrowRight, X } from 'lucide-react';
+import { ShoppingBag, Shield, ArrowRight, X } from 'lucide-react';
 
 interface WelcomeModalProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onC
   const [welcomeTextIndex, setWelcomeTextIndex] = useState(0);
 
   const welcomeMessages = [
-    "Welcome to Lumina Luxe! 👋 I'm Lumi, your personal shopping companion.",
+    "Welcome to Northstar Supply. Your considered shopping desk is ready.",
     "Experience fluid glassmorphism, instant drag-and-drop checkout, and live rewards!",
     "Select your preferred entry portal below to step inside."
   ];
@@ -93,46 +93,21 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onC
         {step === 'welcome' && (
           <div className="space-y-6 text-center">
             
-            {/* Header Lockup: 3D Logo with Periodic Breathing Glow + Cartoon Mascot */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-2">
-              
-              {/* 3D Glowing Logo Emblem */}
-              <div className="relative group">
-                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 opacity-75 blur-md group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse" />
-                <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border border-white/30 shadow-2xl bg-slate-900">
-                  <img
-                    src="/src/assets/images/lumina_luxe_3d_logo_1793541903724.jpg"
-                    alt="Lumina Luxe 3D Logo"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-
-              {/* Animated Cartoon Mascot Lumi */}
-              <div className="relative">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-indigo-400/50 shadow-[0_0_25px_rgba(99,102,241,0.4)] bg-slate-900 animate-bounce duration-1000">
-                  <img
-                    src="/src/assets/images/mascot_lumi_welcoming_1793541903889.jpg"
-                    alt="Lumi Cartoon Mascot"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {/* Waving Badge */}
-                <span className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-full bg-indigo-600 text-[10px] font-bold text-white shadow-lg border border-white/20">
-                  Lumi 👋
-                </span>
-              </div>
-
+            {/* Restrained text-only brand lockup */}
+            <div className="pt-2">
+              <p className="text-[11px] font-bold tracking-[0.28em] uppercase text-indigo-300">
+                Northstar Supply
+              </p>
+              <div className="w-16 h-px bg-indigo-400/70 mx-auto mt-3" />
             </div>
 
             {/* Welcoming Speech Bubble */}
             <div className="max-w-md mx-auto p-4 rounded-2xl bg-white/5 border border-white/15 backdrop-blur-md relative">
               <div className="flex items-center justify-center gap-2 text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-1">
-                <Sparkles className="w-3.5 h-3.5" />
                 <span>Personal Concierge</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-extrabold text-white font-display text-balance">
-                Welcome to Lumina Luxe!
+                Welcome to Northstar Supply
               </h2>
               <p className="text-xs text-slate-300 mt-2 leading-relaxed transition-all duration-300">
                 {welcomeMessages[welcomeTextIndex]}
@@ -155,7 +130,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onC
                   <ArrowRight className="w-4 h-4 text-indigo-400 group-hover:translate-x-1 transition-transform" />
                 </h3>
                 <p className="text-[11px] text-slate-400 mt-1 leading-snug">
-                  Explore catalog, drag & drop to cart, apply Zepto scratch rewards, and manage profile.
+                  Explore the catalog, apply store rewards, and manage your profile.
                 </p>
                 <button
                   type="button"

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext.tsx';
-import { ShoppingBag, ArrowRight, X, Trash2, Tag, Check, Sparkles } from 'lucide-react';
+import { ShoppingBag, ArrowRight, X, Trash2, Tag, Check } from 'lucide-react';
 
 interface CartWidgetProps {
   onOpenCheckout: () => void;
@@ -94,7 +94,7 @@ export const CartWidget: React.FC<CartWidgetProps> = ({ onOpenCheckout }) => {
             }`}
           >
             {isOverDropZone ? (
-              <Sparkles className="w-5 h-5 animate-spin" />
+              <Check className="w-5 h-5" />
             ) : (
               <ShoppingBag className="w-5 h-5" />
             )}

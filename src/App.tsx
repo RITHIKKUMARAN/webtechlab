@@ -17,7 +17,6 @@ import {
   Search,
   Filter,
   ArrowUpDown,
-  Sparkles,
   ShoppingBag,
   Info,
   Gift,
@@ -131,7 +130,7 @@ function ShoppingAppContent() {
   });
 
   return (
-    <div className="relative min-h-screen bg-[#f5f7fb] text-[#172033] flex flex-col selection:bg-indigo-500 selection:text-white">
+    <div className="relative min-h-screen bg-[#080711] text-[#f5f3ff] flex flex-col selection:bg-indigo-500 selection:text-white">
       
       {/* Top Bar Contract (1 Row, 3 Zones) */}
       <Navbar
@@ -194,7 +193,6 @@ function ShoppingAppContent() {
                     }}
                     className="px-3.5 py-2 text-xs font-semibold text-white bg-indigo-700 hover:bg-indigo-800 rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                   >
-                    <Sparkles className="w-3.5 h-3.5" />
                     <span>Shop now</span>
                   </button>
                   <button

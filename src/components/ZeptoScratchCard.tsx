@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { sound } from '../utils/soundEffects.ts';
 import { useCart } from '../context/CartContext.tsx';
-import { Sparkles, Check, Gift, RefreshCw, X, ArrowRight } from 'lucide-react';
+import { Check, RefreshCw, X, ArrowRight } from 'lucide-react';
 
 interface ZeptoScratchCardProps {
   isOpen: boolean;
@@ -44,6 +44,7 @@ export const ZeptoScratchCard: React.FC<ZeptoScratchCardProps> = ({ isOpen, onCl
   const [copied, setCopied] = useState(false);
   const [reward, setReward] = useState<Reward>(REWARDS_POOL[0]);
   const isDrawing = useRef(false);
+  const lastPoint = useRef<{ x: number; y: number } | null>(null);
   const lastSoundTime = useRef(0);
   const { applyCoupon } = useCart();
 
@@ -78,12 +79,12 @@ export const ZeptoScratchCard: React.FC<ZeptoScratchCardProps> = ({ isOpen, onCl
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, width, height);
 
-    // Decorative holographic noise & sparkles
+    // Subtle foil grain
     ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 70; i++) {
       const x = Math.random() * width;
       const y = Math.random() * height;
-      const r = Math.random() * 3 + 1;
+      const r = Math.random() * 2 + 1;
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
       ctx.fill();
@@ -95,7 +96,7 @@ export const ZeptoScratchCard: React.FC<ZeptoScratchCardProps> = ({ isOpen, onCl
     ctx.font = 'bold 15px Plus Jakarta Sans, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('✨ SCRATCH WITH MOUSE OR TOUCH ✨', width / 2, height / 2 - 12);
+    ctx.fillText('SCRATCH WITH MOUSE OR TOUCH', width / 2, height / 2 - 12);
 
     ctx.font = '12px JetBrains Mono, monospace';
     ctx.fillStyle = '#334155';
@@ -115,9 +116,22 @@ export const ZeptoScratchCard: React.FC<ZeptoScratchCardProps> = ({ isOpen, onCl
     const y = clientY - rect.top;
 
     ctx.globalCompositeOperation = 'destination-out';
-    ctx.beginPath();
-    ctx.arc(x, y, 24, 0, Math.PI * 2);
-    ctx.fill();
+    const point = { x, y };
+    const previous = lastPoint.current ?? point;
+    const distance = Math.hypot(point.x - previous.x, point.y - previous.y);
+    const steps = Math.max(1, Math.ceil(distance / 12));
+    const brushRadius = 36;
+
+    // Fill the gaps between pointer events so each drag feels continuous.
+    for (let step = 0; step <= steps; step += 1) {
+      const progress = step / steps;
+      const brushX = previous.x + (point.x - previous.x) * progress;
+      const brushY = previous.y + (point.y - previous.y) * progress;
+      ctx.beginPath();
+      ctx.arc(brushX, brushY, brushRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    lastPoint.current = point;
 
     // Sound effect with throttle
     const now = performance.now();
@@ -158,7 +172,7 @@ export const ZeptoScratchCard: React.FC<ZeptoScratchCardProps> = ({ isOpen, onCl
     const percent = Math.round((transparentPixels / totalSamples) * 100);
     setScratchPercent(percent);
 
-    if (percent > 40 && !isScratched) {
+    if (percent >= 32 && !isScratched) {
       setIsScratched(true);
       sound.playTada();
       // Auto clear rest for clean reveal
@@ -168,6 +182,7 @@ export const ZeptoScratchCard: React.FC<ZeptoScratchCardProps> = ({ isOpen, onCl
 
   const handleMouseDown = (e: React.MouseEvent) => {
     isDrawing.current = true;
+    lastPoint.current = null;
     scratch(e.clientX, e.clientY);
   };
 
@@ -178,10 +193,12 @@ export const ZeptoScratchCard: React.FC<ZeptoScratchCardProps> = ({ isOpen, onCl
 
   const handleMouseUp = () => {
     isDrawing.current = false;
+    lastPoint.current = null;
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     isDrawing.current = true;
+    lastPoint.current = null;
     if (e.touches[0]) {
       scratch(e.touches[0].clientX, e.touches[0].clientY);
     }
@@ -227,9 +244,8 @@ export const ZeptoScratchCard: React.FC<ZeptoScratchCardProps> = ({ isOpen, onCl
 
         {/* Header */}
         <div className="mb-4">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-indigo-500/20 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-2">
-            <Gift className="w-3.5 h-3.5" />
-            <span>Lumina Store Offer</span>
+          <div className="inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-indigo-500/20 border border-amber-400/30 text-amber-300 text-[10px] font-bold tracking-[0.16em] uppercase mb-2">
+            <span>Northstar store offer</span>
           </div>
           <h3 className="text-xl font-bold text-white tracking-tight">Claim Your Surprise Gift</h3>
           <p className="text-xs text-slate-400 mt-0.5">Scratch the silver foil below to unveil your reward.</p>
@@ -239,11 +255,12 @@ export const ZeptoScratchCard: React.FC<ZeptoScratchCardProps> = ({ isOpen, onCl
         <div
           data-scratch-card="true"
           className="relative w-full h-56 rounded-2xl overflow-hidden border-2 border-amber-400/30 shadow-inner bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 flex flex-col items-center justify-center p-4 cursor-crosshair select-none"
+          style={{ touchAction: 'none' }}
         >
           {/* Revealed Reward Layer (Underneath Canvas) */}
           <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 mb-2 shadow-[0_0_20px_rgba(251,191,36,0.4)] animate-bounce">
-              <Sparkles className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 mb-2 shadow-[0_0_20px_rgba(251,191,36,0.4)]">
+              <span className="text-[11px] font-black tracking-[0.16em]">SAVE</span>
             </div>
 
             <span className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 font-display">
@@ -282,11 +299,11 @@ export const ZeptoScratchCard: React.FC<ZeptoScratchCardProps> = ({ isOpen, onCl
               <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
                 <div
                   className="bg-amber-400 h-full transition-all duration-150"
-                  style={{ width: `${Math.min(100, (scratchPercent / 40) * 100)}%` }}
+                  style={{ width: `${Math.min(100, (scratchPercent / 32) * 100)}%` }}
                 />
               </div>
               <p className="text-[11px] text-slate-400 font-mono">
-                {scratchPercent < 40 ? `Scratched: ${scratchPercent}% (Reach 40% to reveal)` : 'Revealing reward...'}
+                {scratchPercent < 32 ? `Scratched: ${scratchPercent}% (Reach 32% to reveal)` : 'Revealing reward...'}
               </p>
             </div>
           ) : (
