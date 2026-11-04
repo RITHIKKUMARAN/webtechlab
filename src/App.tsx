@@ -157,8 +157,8 @@ function ShoppingAppContent() {
                   <Gift className="w-4 h-4" />
                 </span>
                 <div>
-                  <span className="font-bold text-white">A little extra for your next order:</span>
-                  <span className="text-amber-200 ml-1.5">
+                  <span className="font-bold text-amber-950">A little extra for your next order:</span>
+                  <span className="text-amber-800 ml-1.5">
                     open the store offer to reveal a cart discount.
                   </span>
                 </div>
@@ -169,7 +169,7 @@ function ShoppingAppContent() {
                   sound.playClick();
                   setScratchCardOpen(true);
                 }}
-                className="px-3.5 py-1.5 text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-300 hover:from-amber-300 hover:to-yellow-200 rounded-xl shadow-md transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+                className="px-3.5 py-1.5 text-xs font-bold text-amber-950 bg-amber-300 hover:bg-amber-400 rounded-xl shadow-md transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
               >
                 <Zap className="w-3.5 h-3.5 fill-current" />
                 <span>View offer</span>
@@ -192,7 +192,7 @@ function ShoppingAppContent() {
                       sound.playClick();
                       catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }}
-                    className="px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                    className="px-3.5 py-2 text-xs font-semibold text-white bg-indigo-700 hover:bg-indigo-800 rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Shop now</span>
@@ -202,7 +202,7 @@ function ShoppingAppContent() {
                       sound.playClick();
                       catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }}
-                    className="px-3.5 py-2 text-xs font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors cursor-pointer"
+                    className="px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-50 rounded-xl border border-slate-300 transition-colors cursor-pointer"
                   >
                     Browse collection
                   </button>

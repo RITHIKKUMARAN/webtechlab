@@ -2,8 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useCart } from '../context/CartContext.tsx';
 import { sound } from '../utils/soundEffects.ts';
-import logoImage from '../assets/images/lumina_luxe_3d_logo_1793541903724.jpg';
-import { ShoppingBag, User as UserIcon, Shield, Terminal, LogOut, Gift, Volume2, VolumeX } from 'lucide-react';
+import { ShoppingBag, Shield, Terminal, LogOut, Gift, Volume2, VolumeX, Compass } from 'lucide-react';
 
 interface NavbarProps {
   currentView: 'products' | 'profile' | 'admin' | 'api-tester' | 'orders';
@@ -44,14 +43,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={() => handleNav('products')}
-            className="group flex items-center gap-2.5 text-lg sm:text-xl font-bold tracking-tight text-white hover:text-indigo-400 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            className="group flex items-center gap-2.5 text-lg sm:text-xl font-bold tracking-tight text-slate-950 hover:text-indigo-700 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
-            <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-white/20 shadow-md group-hover:shadow-[0_0_15px_#818cf8] transition-all">
-              <img
-                src={logoImage}
-                alt="Logo"
-                className="w-full h-full object-cover"
-              />
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-slate-950 text-indigo-300 shadow-sm group-hover:bg-indigo-700 group-hover:text-white transition-colors">
+              <Compass className="w-5 h-5" strokeWidth={2.2} />
             </div>
             <span className="font-display">Northstar Supply</span>
           </button>
@@ -59,13 +54,13 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Zone 2: Single-Line Nav Links */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
           <button
             onClick={() => handleNav('products')}
             className={`transition-colors whitespace-nowrap shrink-0 cursor-pointer pb-0.5 border-b-2 ${
               currentView === 'products'
-                ? 'text-white border-indigo-400'
-                : 'text-slate-400 border-transparent hover:text-white'
+                ? 'text-indigo-700 border-indigo-600'
+                : 'text-slate-600 border-transparent hover:text-slate-950'
             }`}
           >
             Shop
@@ -75,8 +70,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => handleNav('profile')}
             className={`transition-colors whitespace-nowrap shrink-0 cursor-pointer pb-0.5 border-b-2 ${
               currentView === 'profile'
-                ? 'text-white border-indigo-400'
-                : 'text-slate-400 border-transparent hover:text-white'
+                ? 'text-indigo-700 border-indigo-600'
+                : 'text-slate-600 border-transparent hover:text-slate-950'
             }`}
           >
             Account
@@ -86,8 +81,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => handleNav('orders')}
             className={`transition-colors whitespace-nowrap shrink-0 cursor-pointer pb-0.5 border-b-2 ${
               currentView === 'orders'
-                ? 'text-white border-indigo-400'
-                : 'text-slate-400 border-transparent hover:text-white'
+                ? 'text-indigo-700 border-indigo-600'
+                : 'text-slate-600 border-transparent hover:text-slate-950'
             }`}
           >
             Orders
@@ -97,8 +92,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => handleNav('admin')}
             className={`utility-nav transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5 pb-0.5 border-b-2 ${
               currentView === 'admin'
-                ? 'text-amber-300 border-amber-400'
-                : 'text-slate-400 border-transparent hover:text-amber-200'
+                ? 'text-amber-700 border-amber-600'
+                : 'text-slate-600 border-transparent hover:text-amber-800'
             }`}
           >
             <Shield className="w-3.5 h-3.5" />
@@ -109,8 +104,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => handleNav('api-tester')}
             className={`utility-nav transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5 pb-0.5 border-b-2 ${
               currentView === 'api-tester'
-                ? 'text-cyan-300 border-cyan-400'
-                : 'text-slate-400 border-transparent hover:text-cyan-200'
+                ? 'text-cyan-700 border-cyan-600'
+                : 'text-slate-600 border-transparent hover:text-cyan-800'
             }`}
           >
             <Terminal className="w-3.5 h-3.5" />
@@ -124,7 +119,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => openAuthModal('login')}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-200 hover:text-white rounded-xl border border-white/15 bg-white/5 hover:bg-white/10"
+                className="px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-950 rounded-xl border border-slate-300 bg-white hover:bg-slate-50"
               >
                 Sign in
               </button>
@@ -137,10 +132,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="hidden sm:inline text-xs text-slate-300">{user?.username}</span>
+              <span className="hidden sm:inline text-xs text-slate-700">{user?.username}</span>
               <button
                 onClick={logout}
-                className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white"
+                className="p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-950"
                 title="Sign out"
               >
                 <LogOut className="w-4 h-4" />
@@ -154,7 +149,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               sound.playClick();
               openScratchCard();
             }}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/10 hover:from-amber-500/30 hover:to-yellow-500/20 border border-amber-400/40 text-amber-300 text-xs font-semibold shadow-sm transition-all cursor-pointer animate-pulse"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 text-xs font-semibold shadow-sm transition-all cursor-pointer"
             title="Open the store offer"
           >
             <Gift className="w-3.5 h-3.5" />
@@ -165,7 +160,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={handleToggleSound}
             title={soundEnabled ? "Mute Sound Effects" : "Enable Sound Effects"}
-            className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-950 transition-colors cursor-pointer"
           >
             {soundEnabled ? <Volume2 className="w-4 h-4 text-indigo-400" /> : <VolumeX className="w-4 h-4" />}
           </button>
@@ -176,8 +171,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               sound.playWhoosh();
               setIsCartOpen(true);
             }}
-            className={`relative p-2 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white transition-all cursor-pointer flex items-center gap-2 ${
-              recentAddedId ? 'scale-105 border-indigo-400 bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.5)]' : ''
+            className={`relative p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 transition-all cursor-pointer flex items-center gap-2 ${
+              recentAddedId ? 'scale-105 border-indigo-500 bg-indigo-50 shadow-[0_0_20px_rgba(99,102,241,0.2)]' : ''
             }`}
             title="Open Shopping Cart"
           >
