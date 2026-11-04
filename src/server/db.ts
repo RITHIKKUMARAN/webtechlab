@@ -22,6 +22,7 @@ const userSchema = new Schema<User>({
   age: { type: Number, required: true, min: 1, max: 120 },
   password: { type: String, required: true, select: false },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  sessionVersion: { type: Number, default: 0 },
   createdAt: { type: String, default: () => new Date().toISOString() },
 }, { versionKey: false });
 
@@ -123,10 +124,12 @@ class Store {
 
   async updateUserComplete(emailId: string, updates: { username: string; age: number; password?: string }): Promise<User | null> {
     const update: Record<string, unknown> = { username: updates.username, age: updates.age };
-    if (updates.password) update.password = await bcrypt.hash(updates.password, 12);
+    if (updates.password) {
+      update.password = await bcrypt.hash(updates.password, 12);
+    }
     const updated = await UserModel.findOneAndUpdate(
       { emailId: emailId.trim().toLowerCase() },
-      { $set: update },
+      { $set: update, ...(updates.password ? { $inc: { sessionVersion: 1 } } : {}) },
       { new: true, runValidators: true },
     ).lean();
     return updated ? withoutPassword(updated) as User : null;
@@ -139,10 +142,18 @@ class Store {
     if (fields.password) update.password = await bcrypt.hash(fields.password, 12);
     const updated = await UserModel.findOneAndUpdate(
       { emailId: emailId.trim().toLowerCase() },
-      { $set: update },
+      { $set: update, ...(fields.password ? { $inc: { sessionVersion: 1 } } : {}) },
       { new: true, runValidators: true },
     ).lean();
     return updated ? withoutPassword(updated) as User : null;
+  }
+
+  async revokeUserSessions(emailId: string): Promise<boolean> {
+    const result = await UserModel.updateOne(
+      { emailId: emailId.trim().toLowerCase() },
+      { $inc: { sessionVersion: 1 } },
+    );
+    return result.modifiedCount === 1;
   }
 
   async deleteUser(emailId: string): Promise<boolean> {

@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
+import { parse as parseCookies, serialize as serializeCookie } from 'cookie';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { z } from 'zod';
@@ -18,7 +19,7 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
   throw new Error('JWT_SECRET must be configured and at least 32 characters long.');
 }
 
-type AuthUser = Pick<User, 'emailId' | 'username' | 'role'>;
+type AuthUser = Pick<User, 'emailId' | 'username' | 'role' | 'sessionVersion'>;
 type AuthRequest = Request & { user?: AuthUser };
 
 const publicUser = (user: User): Omit<User, 'password'> => {
@@ -26,27 +27,46 @@ const publicUser = (user: User): Omit<User, 'password'> => {
   return safeUser;
 };
 
+const SESSION_COOKIE = 'lumina_session';
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict' as const,
+  path: '/',
+  maxAge: 15 * 60,
+};
+
 const tokenFor = (user: AuthUser): string => jwt.sign(user, JWT_SECRET, {
   algorithm: 'HS256',
-  expiresIn: '24h',
+  expiresIn: '15m',
 });
 
-const auth = (req: AuthRequest, res: Response, next: NextFunction): void => {
+const auth = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  const cookies = parseCookies(req.headers.cookie || '');
+  const cookieToken = cookies[SESSION_COOKIE];
   const header = req.header('authorization');
-  if (!header || !header.startsWith('Bearer ')) {
+  const bearerToken = header?.startsWith('Bearer ') ? header.slice(7) : undefined;
+  const token = cookieToken || bearerToken;
+  if (!token) {
     res.status(401).json({ error: 'Authentication required.' });
     return;
   }
   try {
-    const payload = jwt.verify(header.slice(7), JWT_SECRET, { algorithms: ['HS256'] });
-    if (typeof payload !== 'object' || !payload.emailId || !payload.role || !payload.username) {
+    const payload = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
+    if (typeof payload !== 'object' || !payload.emailId || !payload.role || !payload.username || typeof payload.sessionVersion !== 'number') {
       res.status(401).json({ error: 'Invalid authentication token.' });
       return;
     }
+    const currentUser = await db.findUserByEmail(String(payload.emailId));
+    if (!currentUser || currentUser.sessionVersion !== payload.sessionVersion) {
+      res.status(401).json({ error: 'Session expired. Please sign in again.' });
+      return;
+    }
     req.user = {
-      emailId: String(payload.emailId),
-      username: String(payload.username),
-      role: payload.role === 'admin' ? 'admin' : 'user',
+      emailId: currentUser.emailId,
+      username: currentUser.username,
+      role: currentUser.role,
+      sessionVersion: currentUser.sessionVersion,
     };
     next();
   } catch {
@@ -130,7 +150,8 @@ app.post('/api/users', asyncRoute(async (req, res) => {
     role: 'user',
   });
   const safeUser = publicUser(user);
-  res.status(201).json({ message: `Successfully registered! Welcome, ${safeUser.username}.`, token: tokenFor(safeUser), user: safeUser });
+  res.append('Set-Cookie', serializeCookie(SESSION_COOKIE, tokenFor(safeUser), cookieOptions));
+  res.status(201).json({ message: `Successfully registered! Welcome, ${safeUser.username}.`, user: safeUser });
 }));
 
 app.post('/api/login', asyncRoute(async (req, res) => {
@@ -145,7 +166,23 @@ app.post('/api/login', asyncRoute(async (req, res) => {
     return;
   }
   const safeUser = publicUser(user);
-  res.json({ message: `Login successful. Welcome back, ${safeUser.username}!`, token: tokenFor(safeUser), user: safeUser });
+  res.append('Set-Cookie', serializeCookie(SESSION_COOKIE, tokenFor(safeUser), cookieOptions));
+  res.json({ message: `Login successful. Welcome back, ${safeUser.username}!`, user: safeUser });
+}));
+
+app.post('/api/logout', auth, asyncRoute(async (req, res) => {
+  await db.revokeUserSessions(req.user!.emailId);
+  res.append('Set-Cookie', serializeCookie(SESSION_COOKIE, '', { ...cookieOptions, maxAge: 0 }));
+  res.json({ message: 'Logged out successfully.' });
+}));
+
+app.get('/api/session', auth, asyncRoute(async (req, res) => {
+  const user = await db.findUserByEmail(req.user!.emailId);
+  if (!user) {
+    res.status(401).json({ error: 'Session expired. Please sign in again.' });
+    return;
+  }
+  res.json({ user: publicUser(user) });
 }));
 
 app.get('/api/products', auth, asyncRoute(async (_req, res) => {

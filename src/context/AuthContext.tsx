@@ -11,44 +11,24 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TOKEN_KEY = 'lumina_auth_token';
-const USER_KEY = 'lumina_auth_user';
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem(TOKEN_KEY);
-  });
-
-  const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem(USER_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  });
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const isAuthenticated = !!token && !!user;
   const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
-    if (token) {
-      localStorage.setItem(TOKEN_KEY, token);
-    } else {
-      localStorage.removeItem(TOKEN_KEY);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(USER_KEY);
-    }
-  }, [user]);
+    fetch('/api/session')
+      .then(async res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.user) {
+          setToken('cookie');
+          setUser(data.user);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
 
   const login = async (emailId: string, password: string) => {
     try {
@@ -63,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, message: data.error || 'Login failed.' };
       }
 
-      setToken(data.token);
+      setToken('cookie');
       setUser(data.user);
       return { success: true, message: data.message };
     } catch (err: any) {
@@ -84,8 +64,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, message: data.error || 'Registration failed.' };
       }
 
-      if (data.token && data.user) {
-        setToken(data.token);
+      if (data.user) {
+        setToken('cookie');
         setUser(data.user);
       }
       return { success: true, message: data.message };
@@ -95,10 +75,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    void fetch('/api/logout', { method: 'POST' });
     setToken(null);
     setUser(null);
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
   };
 
   const updateUserSession = (updated: User) => {
@@ -107,9 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshUserData = async () => {
     if (!token || !user?.emailId) return;
-    const res = await fetch(`/api/users?emailId=${encodeURIComponent(user.emailId)}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch(`/api/users?emailId=${encodeURIComponent(user.emailId)}`);
     if (res.status === 401) logout();
   };
 

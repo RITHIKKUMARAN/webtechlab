@@ -16,6 +16,7 @@ export interface User {
   age: number;
   password?: string;
   role: 'user' | 'admin';
+  sessionVersion?: number;
   createdAt?: string;
 }
 
