@@ -95,6 +95,19 @@ app.use(express.json({ limit: '32kb' }));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: true, legacyHeaders: false }));
 app.use('/api/login', rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, message: { error: 'Too many login attempts. Try again later.' } }));
 
+let databaseReady: Promise<void> | null = null;
+app.use('/api', async (_req, res, next) => {
+  try {
+    databaseReady ??= db.connect().then(() => db.ensureSeeded());
+    await databaseReady;
+    next();
+  } catch (error) {
+    databaseReady = null;
+    console.error('Database connection failed:', error);
+    res.status(503).json({ error: 'Database is temporarily unavailable.' });
+  }
+});
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'lumina-luxe' });
 });
@@ -311,6 +324,8 @@ function cryptoRandomId(): string {
   return `${Date.now().toString(36)}-${randomBytes(8).toString('hex')}`;
 }
 
+export { app };
+
 async function startServer(): Promise<void> {
   await db.connect();
   await db.ensureSeeded();
@@ -325,7 +340,9 @@ async function startServer(): Promise<void> {
   app.listen(PORT, () => console.log(`Lumina Luxe Server active at http://localhost:${PORT}`));
 }
 
-startServer().catch(error => {
-  console.error('Unable to start server:', error);
-  process.exitCode = 1;
-});
+if (!process.env.VERCEL) {
+  startServer().catch(error => {
+    console.error('Unable to start server:', error);
+    process.exitCode = 1;
+  });
+}
