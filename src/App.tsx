@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext.tsx';
 import { CartProvider, useCart } from './context/CartContext.tsx';
 import { Product, Order } from './types/index.ts';
@@ -8,7 +8,6 @@ import { ProductCard } from './components/ProductCard.tsx';
 import { CartWidget } from './components/CartWidget.tsx';
 import { AuthModal } from './components/AuthModal.tsx';
 import { CheckoutModal } from './components/CheckoutModal.tsx';
-import { WelcomeModal } from './components/WelcomeModal.tsx';
 import { ZeptoScratchCard } from './components/ZeptoScratchCard.tsx';
 import { ProfileManagement } from './components/ProfileManagement.tsx';
 import { AdminPanel } from './components/AdminPanel.tsx';
@@ -35,7 +34,6 @@ function ShoppingAppContent() {
   const [currentView, setCurrentView] = useState<'products' | 'profile' | 'admin' | 'api-tester' | 'orders'>('products');
   
   // Interactive Modals
-  const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
   const [scratchCardOpen, setScratchCardOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
@@ -54,6 +52,7 @@ function ShoppingAppContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'stock-desc' | 'name' | 'id'>('featured');
+  const catalogRef = useRef<HTMLDivElement>(null);
 
   // Exercise-8 Page 3: Retrieve products using ONLY HTTP GET method
   const fetchProducts = async () => {
@@ -84,6 +83,20 @@ function ShoppingAppContent() {
     fetchProducts();
   }, [token]);
 
+  useEffect(() => {
+    const sections = document.querySelectorAll<HTMLElement>('.reveal-section');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [products.length, currentView]);
+
   const openAuth = (mode: 'login' | 'register') => {
     sound.playClick();
     setAuthModalMode(mode);
@@ -93,7 +106,7 @@ function ShoppingAppContent() {
   const handleOrderSuccess = (_order: Order) => {
     sound.playTada();
     fetchProducts();
-    // Prompt the user to scratch their post-purchase Zepto reward card!
+    // Prompt the user to reveal their post-purchase store offer.
     setTimeout(() => {
       setScratchCardOpen(true);
     }, 1200);
@@ -139,7 +152,6 @@ function ShoppingAppContent() {
         setCurrentView={setCurrentView}
         openAuthModal={openAuth}
         openScratchCard={() => setScratchCardOpen(true)}
-        openWelcomeModal={() => setWelcomeModalOpen(true)}
         customCursorEnabled={customCursorEnabled}
         setCustomCursorEnabled={setCustomCursorEnabled}
         soundEnabled={soundEnabled}
@@ -153,16 +165,16 @@ function ShoppingAppContent() {
         {currentView === 'products' && (
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6 animate-in fade-in duration-300">
             
-            {/* Top Interactive Zepto Reward Strip */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-indigo-500/15 to-cyan-500/15 border border-amber-400/30 backdrop-blur-xl shadow-lg">
+            {/* Store offer */}
+            <div className="store-offer reveal-section flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 rounded-2xl">
               <div className="flex items-center gap-2.5 text-xs">
                 <span className="p-1.5 rounded-xl bg-amber-400/20 text-amber-300 shrink-0 animate-bounce">
                   <Gift className="w-4 h-4" />
                 </span>
                 <div>
-                  <span className="font-bold text-white">Zepto Live Rewards Active:</span>
+                  <span className="font-bold text-white">A little extra for your next order:</span>
                   <span className="text-amber-200 ml-1.5">
-                    Scratch & win up to 50% flat discount on your entire cart!
+                    open the store offer to reveal a cart discount.
                   </span>
                 </div>
               </div>
@@ -175,12 +187,12 @@ function ShoppingAppContent() {
                 className="px-3.5 py-1.5 text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-300 hover:from-amber-300 hover:to-yellow-200 rounded-xl shadow-md transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
               >
                 <Zap className="w-3.5 h-3.5 fill-current" />
-                <span>Scratch Card Now</span>
+                <span>View offer</span>
               </button>
             </div>
 
             {/* Storefront Hero Banner */}
-            <div className="hero-panel relative overflow-hidden">
+            <div className="hero-panel relative overflow-hidden reveal-section">
               <div className="hero-copy relative z-10">
                 <div className="eyebrow"><span className="eyebrow-dot" /> Curated technology, considered design</div>
                 <h1 className="hero-title">
@@ -193,21 +205,21 @@ function ShoppingAppContent() {
                   <button
                     onClick={() => {
                       sound.playClick();
-                      setWelcomeModalOpen(true);
+                      catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }}
                     className="px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Explore the collection</span>
+                    <span>Shop the collection</span>
                   </button>
                   <button
                     onClick={() => {
                       sound.playClick();
-                      setCurrentView('api-tester');
+                      catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }}
                     className="px-3.5 py-2 text-xs font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors cursor-pointer"
                   >
-                    View how it works
+                    Browse by category
                   </button>
                 </div>
               </div>
@@ -219,7 +231,14 @@ function ShoppingAppContent() {
             </div>
 
             {/* Catalog Controls: Search, Category Tabs, Multi-Sort */}
-            <div className="space-y-3.5">
+            <div ref={catalogRef} className="space-y-3.5 scroll-mt-24 reveal-section">
+              <div className="section-heading">
+                <div>
+                  <span className="section-kicker">The collection</span>
+                  <h2>Tools for the way you work.</h2>
+                </div>
+                <p>Real products, live availability, and secure checkout in one considered catalog.</p>
+              </div>
               <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
                 
                 {/* Search Bar */}
@@ -289,7 +308,7 @@ function ShoppingAppContent() {
             </div>
 
             {/* Products Grid (Exercise-8 Page 3) */}
-            <div>
+            <div className="reveal-section">
               {loadingProducts ? (
                 <div className="py-24 text-center text-xs text-slate-400 font-mono">
                   Loading Products from MongoDB Collection...
@@ -322,14 +341,14 @@ function ShoppingAppContent() {
               )}
             </div>
 
-            {/* Interactive Drag & Drop Help Box */}
-            <div className="p-4 rounded-2xl glass-panel border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+            {/* Cart guidance */}
+            <div className="reveal-section p-4 rounded-2xl glass-panel border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
               <div className="flex items-center gap-3">
                 <span className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
                   <Info className="w-4 h-4" />
                 </span>
                 <span>
-                  Drag any product card directly into the glowing bottom-right Cart Widget to add items with sound feedback!
+                  Select a product to view its details, or add it directly to your cart.
                 </span>
               </div>
               <span className="font-mono text-[11px] text-slate-500">
@@ -357,17 +376,7 @@ function ShoppingAppContent() {
       {/* Floating Drag-and-Drop Cart Widget */}
       <CartWidget onOpenCheckout={() => setCheckoutModalOpen(true)} />
 
-      {/* Welcome Reception Modal with Cartoon Mascot Lumi & 3D Glowing Logo */}
-      <WelcomeModal
-        isOpen={welcomeModalOpen}
-        onClose={() => setWelcomeModalOpen(false)}
-        onComplete={() => {
-          fetchProducts();
-          setCurrentView('products');
-        }}
-      />
-
-      {/* Live Zepto-like Scratch Card Modal */}
+      {/* Store offer modal */}
       <ZeptoScratchCard
         isOpen={scratchCardOpen}
         onClose={() => setScratchCardOpen(false)}
@@ -468,7 +477,7 @@ function ShoppingAppContent() {
               }}
               className="text-amber-400 hover:text-amber-300 underline cursor-pointer"
             >
-              Zepto Scratch Card
+              Store offer
             </button>
             <span>·</span>
             <span>REST API Verified</span>

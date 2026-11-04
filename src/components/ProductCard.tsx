@@ -45,7 +45,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
       onDragEnd={handleDragEnd}
       onClick={() => onSelect && onSelect(product)}
       data-drag-handle="true"
-      className="group relative flex flex-col justify-between rounded-2xl glass-panel-interactive p-4 border border-white/10 hover:border-indigo-400/30 transition-all duration-300 cursor-pointer overflow-hidden"
+      className="group product-card relative flex flex-col justify-between rounded-2xl glass-panel-interactive p-4 border border-white/10 hover:border-indigo-400/30 transition-all duration-300 cursor-pointer overflow-hidden"
     >
       {/* Top Glass Aura Glow */}
       <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-indigo-500/20 transition-colors" />

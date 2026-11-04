@@ -2,14 +2,13 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useCart } from '../context/CartContext.tsx';
 import { sound } from '../utils/soundEffects.ts';
-import { ShoppingBag, User as UserIcon, Shield, Terminal, LogOut, Sparkles, Gift, Volume2, VolumeX, HelpCircle } from 'lucide-react';
+import { ShoppingBag, User as UserIcon, Shield, Terminal, LogOut, Sparkles, Gift, Volume2, VolumeX } from 'lucide-react';
 
 interface NavbarProps {
   currentView: 'products' | 'profile' | 'admin' | 'api-tester' | 'orders';
   setCurrentView: (view: 'products' | 'profile' | 'admin' | 'api-tester' | 'orders') => void;
   openAuthModal: (mode: 'login' | 'register') => void;
   openScratchCard: () => void;
-  openWelcomeModal: () => void;
   customCursorEnabled: boolean;
   setCustomCursorEnabled: (enabled: boolean) => void;
   soundEnabled: boolean;
@@ -21,7 +20,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   setCurrentView,
   openAuthModal,
   openScratchCard,
-  openWelcomeModal,
   customCursorEnabled,
   setCustomCursorEnabled,
   soundEnabled,
@@ -61,18 +59,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="font-display">Lumina Luxe</span>
           </button>
 
-          {/* Welcome Mascot Trigger */}
-          <button
-            onClick={() => {
-              sound.playSuccess();
-              openWelcomeModal();
-            }}
-            title="Lumi Welcome Reception & Guide"
-            className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-300 text-xs transition-colors cursor-pointer"
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-mono text-[11px]">Lumi Bot</span>
-          </button>
         </div>
 
         {/* Zone 2: Single-Line Nav Links */}
@@ -165,17 +151,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           )}
           
-          {/* Zepto Scratch & Win Rewards Button */}
+          {/* Store offer */}
           <button
             onClick={() => {
               sound.playClick();
               openScratchCard();
             }}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/10 hover:from-amber-500/30 hover:to-yellow-500/20 border border-amber-400/40 text-amber-300 text-xs font-semibold shadow-sm transition-all cursor-pointer animate-pulse"
-            title="Zepto Scratch Card - Win Up to 50% Off!"
+            title="Open the store offer"
           >
             <Gift className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Scratch Card</span>
+            <span className="hidden sm:inline">Store offer</span>
           </button>
 
           {/* Sound FX Toggle */}

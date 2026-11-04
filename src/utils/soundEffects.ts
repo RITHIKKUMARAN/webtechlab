@@ -109,7 +109,7 @@ class SoundSystem {
     } catch {}
   }
 
-  // Scratch sound effect when scratching Zepto scratch card
+  // Scratch sound effect for the store offer
   public playScratch() {
     if (!this.soundEnabled) return;
     try {

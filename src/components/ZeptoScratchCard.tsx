@@ -99,7 +99,7 @@ export const ZeptoScratchCard: React.FC<ZeptoScratchCardProps> = ({ isOpen, onCl
 
     ctx.font = '12px JetBrains Mono, monospace';
     ctx.fillStyle = '#334155';
-    ctx.fillText('Zepto Rewards · Win Up to 50% Off', width / 2, height / 2 + 14);
+    ctx.fillText('Lumina Offer · Save on Your Order', width / 2, height / 2 + 14);
     ctx.restore();
   };
 
@@ -229,7 +229,7 @@ export const ZeptoScratchCard: React.FC<ZeptoScratchCardProps> = ({ isOpen, onCl
         <div className="mb-4">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-indigo-500/20 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-2">
             <Gift className="w-3.5 h-3.5" />
-            <span>Zepto Scratch & Win!</span>
+            <span>Lumina Store Offer</span>
           </div>
           <h3 className="text-xl font-bold text-white tracking-tight">Claim Your Surprise Gift</h3>
           <p className="text-xs text-slate-400 mt-0.5">Scratch the silver foil below to unveil your reward.</p>
