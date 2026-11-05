@@ -79,16 +79,37 @@ const CATALOG_FINISHES = [
   'Plum', 'Silver', 'Ink', 'Almond', 'Canyon', 'Mist', 'Onyx', 'Marble', 'Ash',
 ];
 
+const CATALOG_DETAILS: Record<string, string[]> = {
+  'Audio Hardware': [
+    'Balanced tuning keeps voices clear while the low end stays controlled for long listening sessions.',
+    'Memory-foam comfort, tactile controls, and dependable wireless range make it ready for work or travel.',
+  ],
+  Peripherals: [
+    'A considered desk companion with responsive controls, durable materials, and a layout built for daily use.',
+    'Designed to keep your workspace precise and comfortable through focused sessions and creative projects.',
+  ],
+  Wearables: [
+    'A lightweight everyday companion with readable feedback, reliable sensors, and a profile that stays comfortable.',
+    'Built for quick decisions on the move, with a durable finish and practical controls at a glance.',
+  ],
+  Accessories: [
+    'Thoughtful compartments and resilient materials keep everyday essentials protected without unnecessary bulk.',
+    'Made for commutes and weekends with considered details, dependable construction, and an easy-carry profile.',
+  ],
+};
+
 const FULL_CATALOG: Product[] = [
   ...INITIAL_PRODUCTS,
   ...Array.from({ length: 494 }, (_, index) => {
     const source = INITIAL_PRODUCTS[index % INITIAL_PRODUCTS.length];
     const edition = Math.floor(index / CATALOG_FINISHES.length) + 1;
     const finish = CATALOG_FINISHES[index % CATALOG_FINISHES.length];
+    const detail = CATALOG_DETAILS[source.category][index % CATALOG_DETAILS[source.category].length];
     return {
       ...source,
       productId: `PROD-${107 + index}`,
       productName: `${source.productName} — ${finish} Edition ${edition}`,
+      description: `${source.description} ${detail} This ${finish.toLowerCase()} edition is individually catalogued for the Northstar Supply collection.`,
       productPrice: source.productPrice + ((index * 17) % 9) * 5,
       quantity: 8 + ((index * 13) % 43),
       image: `/products/PROD-${107 + index}.svg`,
@@ -142,9 +163,32 @@ class Store {
       FULL_CATALOG.map(product => ({
         updateOne: {
           filter: { productId: product.productId, image: { $not: /^\/products\/PROD-\d+\.svg$/ } },
-          update: { $set: { image: product.image } },
+          update: {
+            $set: {
+              image: product.image,
+              ...(product.productId !== 'PROD-101' &&
+              product.productId !== 'PROD-102' &&
+              product.productId !== 'PROD-103' &&
+              product.productId !== 'PROD-104' &&
+              product.productId !== 'PROD-105' &&
+              product.productId !== 'PROD-106'
+                ? { description: product.description }
+                : {}),
+            },
+          },
         },
       })),
+      { ordered: false },
+    );
+    await ProductModel.bulkWrite(
+      FULL_CATALOG
+        .filter(product => Number(product.productId.replace('PROD-', '')) >= 107)
+        .map(product => ({
+          updateOne: {
+            filter: { productId: product.productId },
+            update: { $set: { description: product.description } },
+          },
+        })),
       { ordered: false },
     );
   }

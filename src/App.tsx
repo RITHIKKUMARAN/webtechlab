@@ -430,7 +430,7 @@ function ShoppingAppContent() {
       {/* Product Detail Modal */}
       {selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          <div className="relative w-full max-w-lg p-6 rounded-2xl glass-panel border border-white/20 shadow-2xl">
+          <div className="relative w-full max-w-4xl p-4 sm:p-6 rounded-2xl glass-panel border border-white/20 shadow-2xl">
             <button
               onClick={() => {
                 sound.playClick();
@@ -441,48 +441,53 @@ function ShoppingAppContent() {
               <X className="w-5 h-5" />
             </button>
 
-            <div className="aspect-16/9 w-full rounded-xl overflow-hidden bg-slate-900 mb-4 border border-white/10">
-              {selectedProduct.image && (
-                <img
-                  src={selectedProduct.image}
-                  alt={selectedProduct.productName}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-slate-400 font-mono mb-2">
-              <span className="text-indigo-400 font-bold">{selectedProduct.productId}</span>
-              <span aria-hidden="true">·</span>
-              <span>{selectedProduct.category}</span>
-              <span aria-hidden="true">·</span>
-              <span>In Stock: {selectedProduct.quantity} units</span>
-            </div>
-
-            <h2 className="text-xl font-bold text-white mb-2">{selectedProduct.productName}</h2>
-            <p className="text-xs text-slate-300 leading-relaxed mb-6">{selectedProduct.description}</p>
-
-            <div className="flex items-center justify-between pt-4 border-t border-white/10">
-              <div>
-                <span className="text-xs text-slate-400 block">Unit Price</span>
-                <span className="text-2xl font-bold text-white tabular-nums font-mono">
-                  ${selectedProduct.productPrice.toLocaleString()}
-                </span>
+            <div className="grid gap-5 md:grid-cols-[1.05fr_0.95fr] items-stretch">
+              <div className="aspect-[4/3] md:aspect-auto min-h-64 rounded-xl overflow-hidden bg-slate-900 border border-white/10">
+                {selectedProduct.image && (
+                  <img
+                    src={selectedProduct.image}
+                    alt={selectedProduct.productName}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
 
-              <button
-                onClick={() => {
-                  sound.playSuccess();
-                  if (!requireAuthentication()) return;
-                  addToCart(selectedProduct, 1);
-                  setSelectedProduct(null);
-                }}
-                disabled={selectedProduct.quantity <= 0}
-                className="px-5 py-2.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-all cursor-pointer shadow-md disabled:opacity-40"
-              >
-                Add to Cart ($ {selectedProduct.productPrice})
-              </button>
+              <div className="flex flex-col justify-between py-1">
+                <div>
+                  <div className="flex items-center gap-2 text-xs text-slate-400 font-mono mb-3">
+                    <span className="text-indigo-400 font-bold">{selectedProduct.productId}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{selectedProduct.category}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>In Stock: {selectedProduct.quantity}</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white mb-3">{selectedProduct.productName}</h2>
+                  <p className="text-sm text-slate-300 leading-7">{selectedProduct.description}</p>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 pt-5 mt-5 border-t border-white/10">
+                  <div>
+                    <span className="text-xs text-slate-400 block">Unit price</span>
+                    <span className="text-2xl font-bold text-white tabular-nums font-mono">
+                      ₹{selectedProduct.productPrice.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      sound.playSuccess();
+                      if (!requireAuthentication()) return;
+                      addToCart(selectedProduct, 1);
+                      setSelectedProduct(null);
+                    }}
+                    disabled={selectedProduct.quantity <= 0}
+                    className="px-5 py-2.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-all cursor-pointer shadow-md disabled:opacity-40"
+                  >
+                    Add to cart
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

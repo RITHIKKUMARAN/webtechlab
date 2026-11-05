@@ -120,10 +120,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect, onR
           {product.productName}
         </h3>
 
-        {/* Description */}
-        <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-4">
-          {product.description}
-        </p>
       </div>
 
       {/* Bottom Bar: Price Baseline & Action Button */}
