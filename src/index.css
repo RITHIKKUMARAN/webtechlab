@@ -251,7 +251,6 @@ pre,
 }
 
 @media (max-width: 1280px) {
-  .utility-nav,
   .header-setting {
     display: none;
   }
