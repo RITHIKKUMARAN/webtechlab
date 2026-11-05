@@ -30,17 +30,18 @@ const publicUser = (user: User): Omit<User, 'password'> => {
 };
 
 const SESSION_COOKIE = 'lumina_session';
+const SESSION_DURATION_SECONDS = 7 * 24 * 60 * 60;
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'strict' as const,
   path: '/',
-  maxAge: 15 * 60,
+  maxAge: SESSION_DURATION_SECONDS,
 };
 
 const tokenFor = (user: AuthUser): string => jwt.sign(user, getJwtSecret(), {
   algorithm: 'HS256',
-  expiresIn: '15m',
+  expiresIn: '7d',
 });
 
 const auth = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
