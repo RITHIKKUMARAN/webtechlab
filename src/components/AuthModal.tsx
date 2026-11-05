@@ -151,7 +151,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </h2>
           <p className="text-xs text-slate-400 mt-1">
             {mode === 'login'
-              ? 'Validate credentials against the Users MongoDB collection.'
+              ? 'Use your registered email ID. For admin access, use the configured ADMIN_EMAIL.'
               : 'Register details into the Users collection with REST validation.'}
           </p>
         </div>

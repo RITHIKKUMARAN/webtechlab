@@ -145,6 +145,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           ) : (
             <div className="flex items-center gap-2">
               <span className="hidden sm:inline text-xs text-slate-700">{user?.username}</span>
+              {isAdmin && (
+                <span className="hidden sm:inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800">
+                  Admin
+                </span>
+              )}
               <button
                 onClick={logout}
                 className="p-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-950"
