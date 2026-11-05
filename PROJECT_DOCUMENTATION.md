@@ -80,6 +80,18 @@ React component
   -> React state update and UI re-render
 ```
 
+### Exact connection points
+
+| Connection | File and line | What happens |
+|---|---|---|
+| Vercel frontend to backend | `vercel.json:10-13` | Routes `/api/*` browser requests to the serverless API function. |
+| Vercel API entrypoint | `api/index.ts:1-3` | Exports the Express app to Vercel. |
+| Express app import | `server.ts:1-14` | Creates the Express application and imports the database store. |
+| MongoDB startup connection | `server.ts:135-137` | Connects to MongoDB and runs catalog/admin initialization before API work. |
+| MongoDB connection implementation | `src/server/db.ts:125-136` | Calls `mongoose.connect(process.env.MONGODB_URI, ...)`. |
+| Frontend app bootstrap | `src/main.tsx:1-10` | Mounts the React application into the `root` element. |
+| Frontend API base | `src/App.tsx:64-69` | Fetches the public product catalog from `/api/products`. |
+
 ### Frontend to backend connection
 
 The frontend and API use relative URLs such as `/api/login` and `/api/products`. This means the browser sends requests to the same domain where the app is deployed. In development, Vite serves the frontend through `server.ts`; in Vercel, `vercel.json` sends `/api/*` requests to `api/index.ts`, which exports the Express app.
@@ -88,18 +100,21 @@ The main frontend request locations are:
 
 | Feature | Frontend file | Request |
 |---|---|---|
-| Restore session after reload | `src/context/AuthContext.tsx` | `GET /api/session` |
-| Register | `src/context/AuthContext.tsx` | `POST /api/users` |
-| Login | `src/context/AuthContext.tsx` | `POST /api/login` |
-| Logout | `src/context/AuthContext.tsx` | `POST /api/logout` |
-| Browse catalog | `src/App.tsx` | `GET /api/products` |
-| Add/edit products | `src/components/AdminPanel.tsx` | `POST` or `PUT /api/products` |
-| Delete products | `src/components/AdminPanel.tsx` | `DELETE /api/products/:productId` |
-| Checkout | `src/components/CheckoutModal.tsx` | `POST /api/checkout` |
-| View orders | `src/components/OrdersView.tsx` | `GET /api/orders` |
-| Update profile | `src/components/ProfileManagement.tsx` | `PUT` or `PATCH /api/users` |
-| Delete profile | `src/components/ProfileManagement.tsx` | `DELETE /api/users` |
-| Exercise endpoint testing | `src/components/ApiTester.tsx` | Dynamic request selected in the console |
+| Restore session after reload | `src/context/AuthContext.tsx:31` | `GET /api/session` |
+| Login | `src/context/AuthContext.tsx:45-65` | `POST /api/login` |
+| Register | `src/context/AuthContext.tsx:67-89` | `POST /api/users` |
+| Logout | `src/context/AuthContext.tsx:91` | `POST /api/logout` |
+| Browse catalog | `src/App.tsx:64-69` | `GET /api/products` |
+| Load admin data | `src/components/AdminPanel.tsx:33-59` | Products, users, and orders requests |
+| Add/edit products | `src/components/AdminPanel.tsx:100-116` | `POST` or `PUT /api/products` |
+| Delete products | `src/components/AdminPanel.tsx:128-137` | `DELETE /api/products/:productId` |
+| Reset database | `src/components/AdminPanel.tsx:148-159` | `POST /api/admin/reset-db` |
+| Checkout | `src/components/CheckoutModal.tsx:61-75` | `POST /api/checkout` |
+| View orders | `src/components/OrdersView.tsx:19-31` | `GET /api/orders` |
+| Complete profile | `src/components/ProfileManagement.tsx:51-73` | `PUT /api/users?emailId=...` |
+| Partial profile | `src/components/ProfileManagement.tsx:103-125` | `PATCH /api/users?emailId=...` |
+| Delete profile | `src/components/ProfileManagement.tsx:140-157` | `DELETE /api/users?emailId=...` |
+| Exercise endpoint testing | `src/components/ApiTester.tsx:134-157` | Dynamic request selected in the console |
 
 ### Backend route connection
 
