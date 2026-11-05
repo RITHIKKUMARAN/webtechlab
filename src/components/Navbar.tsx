@@ -88,17 +88,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             Orders
           </button>
 
-          <button
-            onClick={() => handleNav('admin')}
-            className={`utility-nav transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5 pb-0.5 border-b-2 ${
-              currentView === 'admin'
-                ? 'text-amber-700 border-amber-600'
-                : 'text-slate-600 border-transparent hover:text-amber-800'
-            }`}
-          >
-            <Shield className="w-3.5 h-3.5" />
-            <span>Admin dashboard</span>
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => handleNav('admin')}
+              className={`utility-nav transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5 pb-0.5 border-b-2 ${
+                currentView === 'admin'
+                  ? 'text-amber-700 border-amber-600'
+                  : 'text-slate-600 border-transparent hover:text-amber-800'
+              }`}
+            >
+              <Shield className="w-3.5 h-3.5" />
+              <span>Admin dashboard</span>
+            </button>
+          )}
 
           <button
             onClick={() => handleNav('api-tester')}
@@ -115,6 +117,16 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Zone 3: Primary Action & Interactive Widgets */}
         <div className="flex items-center gap-2.5 shrink-0">
+          {isAdmin && (
+            <button
+              onClick={() => handleNav('admin')}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 text-xs font-semibold transition-colors cursor-pointer md:hidden"
+              title="Open admin dashboard"
+            >
+              <Shield className="w-3.5 h-3.5" />
+              <span>Admin</span>
+            </button>
+          )}
           {!isAuthenticated ? (
             <div className="flex items-center gap-1.5">
               <button

@@ -194,7 +194,7 @@ export const AdminPanel: React.FC = () => {
             <span>Administrator Control Center</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Elevated privileges: manage Products & Users collections, monitor live order telemetry, and reset store seeds.
+            Add products, change prices and stock, remove products, manage users, and monitor orders.
           </p>
         </div>
 
@@ -333,17 +333,19 @@ export const AdminPanel: React.FC = () => {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => startEditProduct(p)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                           title="Edit Product"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
+                          <span>Edit</span>
                         </button>
                         <button
                           onClick={() => handleDeleteProduct(p.productId)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-slate-300 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                           title="Delete Product"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
                         </button>
                       </div>
                     </td>
