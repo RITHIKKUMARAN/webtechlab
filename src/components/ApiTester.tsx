@@ -179,9 +179,6 @@ export const ApiTester: React.FC = () => {
           <Terminal className="w-6 h-6 text-cyan-400" />
           <span>Interactive REST API Explorer & Thunder Client</span>
         </h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Directly execute and evaluate all 6 required Exercise-8 endpoints with status codes, headers, and real JSON payloads.
-        </p>
       </div>
 
       {/* Preset Buttons */}
