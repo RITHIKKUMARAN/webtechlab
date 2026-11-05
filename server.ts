@@ -137,13 +137,28 @@ app.use('/api', async (_req, res, next) => {
     next();
   } catch (error) {
     databaseReady = null;
-    console.error('Database connection failed:', error);
     const message = error instanceof Error ? error.message : '';
+    const errorCode = message.includes('JWT_SECRET')
+      ? 'JWT_CONFIGURATION'
+      : message.includes('ADMIN_PASSWORD')
+        ? 'ADMIN_CONFIGURATION'
+        : message.includes('MONGODB_URI')
+          ? 'MONGODB_CONFIGURATION'
+          : 'MONGODB_CONNECTION';
+    console.error('API startup dependency failed:', errorCode);
     if (message.includes('JWT_SECRET')) {
       res.status(503).json({ error: 'Server authentication is not configured. Add a JWT_SECRET of at least 32 characters in Vercel.' });
       return;
     }
-    res.status(503).json({ error: 'Database is temporarily unavailable. Check the MONGODB_URI environment variable.' });
+    if (message.includes('ADMIN_PASSWORD')) {
+      res.status(503).json({ error: 'Admin authentication is not configured. ADMIN_PASSWORD must be at least 12 characters long.' });
+      return;
+    }
+    if (message.includes('MONGODB_URI')) {
+      res.status(503).json({ error: 'Database authentication is not configured. Add MONGODB_URI in Vercel.' });
+      return;
+    }
+    res.status(503).json({ error: 'MongoDB could not be reached. Verify the URI, database user password, and Atlas Network Access allowlist, then redeploy.' });
   }
 });
 

@@ -128,10 +128,12 @@ class Store {
     if (!mongoUri) {
       throw new Error('MONGODB_URI is required. Configure it in .env before starting the server.');
     }
+    if (mongoose.connection.readyState === 1) return;
     await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 8000,
       connectTimeoutMS: 8000,
       socketTimeoutMS: 8000,
+      maxPoolSize: 5,
     });
   }
 
