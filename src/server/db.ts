@@ -136,19 +136,9 @@ class Store {
   }
 
   async resetDefaults(): Promise<void> {
-    const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-    const adminPassword = process.env.ADMIN_PASSWORD;
     await Promise.all([ProductModel.deleteMany({}), UserModel.deleteMany({}), OrderModel.deleteMany({})]);
     await ProductModel.insertMany(FULL_CATALOG);
-    if (adminEmail && adminPassword && adminPassword.length >= 12) {
-      await UserModel.create({
-        username: 'Administrator',
-        emailId: adminEmail,
-        age: 32,
-        password: await bcrypt.hash(adminPassword, 12),
-        role: 'admin',
-      });
-    }
+    await this.ensureConfiguredAdmin();
   }
 
   async ensureSeeded(): Promise<void> {
@@ -190,6 +180,45 @@ class Store {
           },
         })),
       { ordered: false },
+    );
+    await this.ensureConfiguredAdmin();
+  }
+
+  private async ensureConfiguredAdmin(): Promise<void> {
+    const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminUsername = process.env.ADMIN_USERNAME?.trim() || 'Administrator';
+    if (!adminEmail || !adminPassword) return;
+    if (adminPassword.length < 12) {
+      throw new Error('ADMIN_PASSWORD must be at least 12 characters long.');
+    }
+
+    const existing = await UserModel.findOne({ emailId: adminEmail }).select('+password').lean();
+    if (!existing) {
+      await UserModel.create({
+        username: adminUsername,
+        emailId: adminEmail,
+        age: 32,
+        password: await bcrypt.hash(adminPassword, 12),
+        role: 'admin',
+        sessionVersion: 0,
+      });
+      return;
+    }
+
+    const passwordMatches = Boolean(existing.password) && await bcrypt.compare(adminPassword, existing.password);
+    const passwordHash = passwordMatches ? undefined : await bcrypt.hash(adminPassword, 12);
+    const changes: Record<string, unknown> = {
+      username: adminUsername,
+      role: 'admin',
+    };
+    if (passwordHash) changes.password = passwordHash;
+    await UserModel.updateOne(
+      { emailId: adminEmail },
+      {
+        $set: changes,
+        ...(passwordHash ? { $inc: { sessionVersion: 1 } } : {}),
+      },
     );
   }
 
