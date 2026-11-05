@@ -134,13 +134,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 {placedOrder.items.map((item, idx) => (
                   <div key={idx} className="flex justify-between text-slate-300 pl-2">
                     <span>{item.quantity}x {item.productName}</span>
-                    <span className="tabular-nums">${item.subtotal.toLocaleString()}</span>
+                    <span className="tabular-nums">₹{item.subtotal.toLocaleString('en-IN')}</span>
                   </div>
                 ))}
               </div>
               <div className="flex justify-between pt-2 border-t border-white/10 text-sm font-bold text-white">
                 <span>Total Paid:</span>
-                <span className="text-emerald-400 tabular-nums">${placedOrder.totalAmount.toLocaleString()}</span>
+                <span className="text-emerald-400 tabular-nums">₹{placedOrder.totalAmount.toLocaleString('en-IN')}</span>
               </div>
             </div>
 
@@ -258,18 +258,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1.5 text-xs text-slate-300">
                 <div className="flex justify-between">
                   <span>Cart Items ({cart.length})</span>
-                  <span className="tabular-nums font-mono">${(totalAmount + discount).toLocaleString()}</span>
+                  <span className="tabular-nums font-mono">₹{(totalAmount + discount).toLocaleString('en-IN')}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-emerald-400">
                     <span>Applied Coupon</span>
-                    <span className="tabular-nums font-mono">-${discount.toLocaleString()}</span>
+                    <span className="tabular-nums font-mono">-₹{discount.toLocaleString('en-IN')}</span>
                   </div>
                 )}
                 <div className="flex justify-between font-bold text-white pt-1 border-t border-white/10">
                   <span>Payable Total:</span>
                   <span className="text-indigo-300 tabular-nums font-mono text-sm">
-                    ${totalAmount.toLocaleString()}
+                    ₹{totalAmount.toLocaleString('en-IN')}
                   </span>
                 </div>
               </div>

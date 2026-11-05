@@ -179,12 +179,12 @@ function ShoppingAppContent() {
             {/* Store offer */}
             <div className="store-offer reveal-section flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 rounded-2xl">
               <div className="flex items-center gap-2.5 text-xs">
-                <span className="p-1.5 rounded-xl bg-amber-400/20 text-amber-300 shrink-0 animate-bounce">
+                <span className="p-1.5 rounded-xl bg-amber-400/20 text-amber-300 shrink-0">
                   <Gift className="w-4 h-4" />
                 </span>
                 <div>
-                  <span className="font-bold text-amber-950">A little extra for your next order:</span>
-                  <span className="text-amber-800 ml-1.5">
+                  <span className="font-bold text-amber-200">A little extra for your next order:</span>
+                  <span className="text-amber-100/80 ml-1.5">
                     open the store offer to reveal a cart discount.
                   </span>
                 </div>
@@ -195,7 +195,7 @@ function ShoppingAppContent() {
                   sound.playClick();
                   openScratchCard();
                 }}
-                className="px-3.5 py-1.5 text-xs font-bold text-amber-950 bg-amber-300 hover:bg-amber-400 rounded-xl shadow-md transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+                className="px-3.5 py-1.5 text-xs font-bold text-slate-950 bg-amber-300 hover:bg-amber-200 rounded-xl shadow-md transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
               >
                 <Zap className="w-3.5 h-3.5 fill-current" />
                 <span>View offer</span>
@@ -360,6 +360,7 @@ function ShoppingAppContent() {
                         sound.playWhoosh();
                         setSelectedProduct(prod);
                       }}
+                      onRequireAuth={() => openAuth('login')}
                     />
                   ))}
                 </div>
@@ -377,7 +378,7 @@ function ShoppingAppContent() {
                 </span>
               </div>
               <span className="font-mono text-[11px] text-slate-500">
-                Exercise-8 MERN Lab Spec Verified
+                Live catalog · secure checkout
               </span>
             </div>
 

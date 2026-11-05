@@ -124,7 +124,7 @@ export const CartWidget: React.FC<CartWidgetProps> = ({ onOpenCheckout }) => {
                   <span className="text-[11px] font-mono text-indigo-300">({totalItems} items)</span>
                 </div>
                 <p className="text-xs font-semibold text-slate-200 tabular-nums">
-                  ${totalAmount.toLocaleString()}
+                  ₹{totalAmount.toLocaleString('en-IN')}
                 </p>
               </div>
             )}
@@ -195,7 +195,7 @@ export const CartWidget: React.FC<CartWidgetProps> = ({ onOpenCheckout }) => {
                         <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
                           <span className="font-mono text-indigo-300">{product.productId}</span>
                           <span aria-hidden="true">·</span>
-                          <span className="tabular-nums">${product.productPrice} each</span>
+                          <span className="tabular-nums">₹{product.productPrice.toLocaleString('en-IN')} each</span>
                         </div>
                       </div>
 
@@ -222,7 +222,7 @@ export const CartWidget: React.FC<CartWidgetProps> = ({ onOpenCheckout }) => {
 
                         <div className="flex items-center gap-3">
                           <span className="text-xs font-bold text-white tabular-nums">
-                            ${(product.productPrice * quantity).toLocaleString()}
+                            ₹{(product.productPrice * quantity).toLocaleString('en-IN')}
                           </span>
                           <button
                             onClick={() => removeFromCart(product.productId)}
@@ -277,18 +277,18 @@ export const CartWidget: React.FC<CartWidgetProps> = ({ onOpenCheckout }) => {
                 <div className="space-y-1.5 text-xs text-slate-300 pt-1">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span className="tabular-nums font-mono">${subtotal.toLocaleString()}</span>
+                    <span className="tabular-nums font-mono">₹{subtotal.toLocaleString('en-IN')}</span>
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between text-emerald-400">
                       <span>Discount ({couponCode})</span>
-                      <span className="tabular-nums font-mono">-${discount.toLocaleString()}</span>
+                      <span className="tabular-nums font-mono">-₹{discount.toLocaleString('en-IN')}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-sm font-bold text-white pt-2 border-t border-white/10">
                     <span>Total</span>
                     <span className="tabular-nums font-mono text-base text-indigo-300">
-                      ${totalAmount.toLocaleString()}
+                      ₹{totalAmount.toLocaleString('en-IN')}
                     </span>
                   </div>
                 </div>

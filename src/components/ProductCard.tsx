@@ -3,14 +3,17 @@ import { Product } from '../types/index.ts';
 import { useCart } from '../context/CartContext.tsx';
 import { GripVertical, Plus, Check } from 'lucide-react';
 import { sound } from '../utils/soundEffects.ts';
+import { useAuth } from '../context/AuthContext.tsx';
 
 interface ProductCardProps {
   product: Product;
   onSelect?: (product: Product) => void;
+  onRequireAuth?: () => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect, onRequireAuth }) => {
   const { addToCart, setDraggedProduct, setIsDraggingProduct } = useCart();
+  const { isAuthenticated } = useAuth();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
 
@@ -29,6 +32,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isAuthenticated) {
+      onRequireAuth?.();
+      return;
+    }
     if (product.quantity <= 0) return;
     sound.playSuccess();
     addToCart(product, 1);
@@ -119,7 +126,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
         <div>
           <span className="text-xs text-slate-400 block">Price</span>
           <span className="text-lg font-bold text-white tabular-nums tracking-tight">
-            ${product.productPrice.toLocaleString()}
+            ₹{product.productPrice.toLocaleString('en-IN')}
           </span>
         </div>
 

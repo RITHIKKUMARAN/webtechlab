@@ -73,6 +73,29 @@ const INITIAL_PRODUCTS: Product[] = [
   isFeatured: isFeatured as boolean,
 }));
 
+const CATALOG_FINISHES = [
+  'Midnight', 'Stone', 'Graphite', 'Cloud', 'Sage', 'Cobalt', 'Sand', 'Copper',
+  'Forest', 'Ivory', 'Slate', 'Rose', 'Ocean', 'Moss', 'Ember', 'Linen',
+  'Plum', 'Silver', 'Ink', 'Almond', 'Canyon', 'Mist', 'Onyx', 'Marble', 'Ash',
+];
+
+const FULL_CATALOG: Product[] = [
+  ...INITIAL_PRODUCTS,
+  ...Array.from({ length: 494 }, (_, index) => {
+    const source = INITIAL_PRODUCTS[index % INITIAL_PRODUCTS.length];
+    const edition = Math.floor(index / CATALOG_FINISHES.length) + 1;
+    const finish = CATALOG_FINISHES[index % CATALOG_FINISHES.length];
+    return {
+      ...source,
+      productId: `PROD-${107 + index}`,
+      productName: `${source.productName} — ${finish} Edition ${edition}`,
+      productPrice: source.productPrice + ((index * 17) % 9) * 5,
+      quantity: 8 + ((index * 13) % 43),
+      isFeatured: index < 24,
+    };
+  }),
+];
+
 function withoutPassword(user: User): Omit<User, 'password'> {
   const { password: _password, ...safeUser } = user;
   return safeUser;
@@ -94,7 +117,7 @@ class Store {
     const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
     const adminPassword = process.env.ADMIN_PASSWORD;
     await Promise.all([ProductModel.deleteMany({}), UserModel.deleteMany({}), OrderModel.deleteMany({})]);
-    await ProductModel.insertMany(INITIAL_PRODUCTS);
+    await ProductModel.insertMany(FULL_CATALOG);
     if (adminEmail && adminPassword && adminPassword.length >= 12) {
       await UserModel.create({
         username: 'Administrator',
@@ -107,8 +130,13 @@ class Store {
   }
 
   async ensureSeeded(): Promise<void> {
-    if (await ProductModel.exists({})) return;
-    await this.resetDefaults();
+    const existingIds = new Set(
+      (await ProductModel.find({}, { productId: 1 }).lean()).map(product => product.productId),
+    );
+    const missingProducts = FULL_CATALOG.filter(product => !existingIds.has(product.productId));
+    if (missingProducts.length > 0) {
+      await ProductModel.insertMany(missingProducts, { ordered: false });
+    }
   }
 
   async findUserByEmail(emailId: string, includePassword = false): Promise<User | undefined> {

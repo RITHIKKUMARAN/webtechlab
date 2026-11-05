@@ -16,7 +16,7 @@ const PRESETS: EndpointPreset[] = [
     name: '1. Register User (POST /api/users)',
     method: 'POST',
     path: '/api/users',
-    description: 'Exercise-8 Page 1: Store new user in Users collection and return personalized welcome message.',
+    description: 'Store a new user in the Users collection and return a personalized welcome message.',
     defaultBody: JSON.stringify(
       {
         username: 'Kiran Kumar',
@@ -32,7 +32,7 @@ const PRESETS: EndpointPreset[] = [
     name: '2. User Login (POST /api/login)',
     method: 'POST',
     path: '/api/login',
-    description: 'Exercise-8 Page 2: Validate against Users collection ("User Not Registered." / "Invalid Password.").',
+    description: 'Validate credentials against the Users collection.',
     defaultBody: JSON.stringify(
       {
         emailId: '',
@@ -56,7 +56,7 @@ const PRESETS: EndpointPreset[] = [
     description: 'Exercise-8 Section 3A: Update complete editable profile details.',
     defaultBody: JSON.stringify(
       {
-        username: 'Raghavendra Sharma',
+        username: 'Rithik Kumaran K',
         age: 25,
         password: 'updatedPassword456',
       },

@@ -237,7 +237,7 @@ export const AdminPanel: React.FC = () => {
         </div>
         <div className="glass-panel p-4 rounded-xl border border-white/10">
           <span className="text-xs text-slate-400 block">Total Orders Revenue</span>
-          <span className="text-2xl font-bold text-emerald-400 tabular-nums">${totalRevenue.toLocaleString()}</span>
+          <span className="text-2xl font-bold text-emerald-400 tabular-nums">₹{totalRevenue.toLocaleString('en-IN')}</span>
         </div>
       </div>
 
@@ -320,7 +320,7 @@ export const AdminPanel: React.FC = () => {
                     </td>
                     <td className="px-4 py-3 text-slate-300">{p.category}</td>
                     <td className="px-4 py-3 tabular-nums font-mono font-medium text-white">
-                      ${p.productPrice.toLocaleString()}
+                      ₹{p.productPrice.toLocaleString('en-IN')}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`font-mono tabular-nums font-semibold ${
@@ -410,7 +410,7 @@ export const AdminPanel: React.FC = () => {
                       <span className="text-slate-400">{o.username} ({o.emailId})</span>
                     </div>
                     <span className="text-emerald-400 font-bold tabular-nums font-mono">
-                      ${o.totalAmount.toLocaleString()}
+                      ₹{o.totalAmount.toLocaleString('en-IN')}
                     </span>
                   </div>
                   <div className="text-slate-400">
@@ -463,7 +463,7 @@ export const AdminPanel: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Price ($)</label>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Price (₹)</label>
                   <input
                     type="number"
                     min="1"

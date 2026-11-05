@@ -28,8 +28,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
-    fetch('/api/session')
-      .then(async res => res.ok ? res.json() : null)
+    fetch('/api/session', { credentials: 'include' })
+      .then(async res => {
+        const { data } = await readResponse(res);
+        return res.ok ? data : null;
+      })
       .then(data => {
         if (data?.user) {
           setToken('cookie');
@@ -44,6 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ emailId, password }),
       });
 
@@ -65,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(userData),
       });
 

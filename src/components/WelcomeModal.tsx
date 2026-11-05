@@ -192,7 +192,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onC
               <div className="flex-1 text-center">
                 <h3 className="text-lg font-bold text-white flex items-center justify-center gap-2">
                   <ShoppingBag className="w-5 h-5 text-indigo-400" />
-                  <span>Customer Login (Page 2)</span>
+                  <span>Customer login</span>
                 </h3>
                 <p className="text-xs text-slate-400">Exercise-8 MERN Stack Login Validation</p>
               </div>

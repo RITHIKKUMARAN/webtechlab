@@ -92,7 +92,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ onBackToShop }) => {
                     <span>{order.status}</span>
                   </span>
                   <span className="text-sm font-bold text-white tabular-nums font-mono pl-2">
-                    ${order.totalAmount.toLocaleString()}
+                    ₹{order.totalAmount.toLocaleString('en-IN')}
                   </span>
                 </div>
               </div>
@@ -105,7 +105,7 @@ export const OrdersView: React.FC<OrdersViewProps> = ({ onBackToShop }) => {
                     {order.items.map((item, idx) => (
                       <div key={idx} className="flex justify-between text-xs text-slate-200">
                         <span>{item.quantity}x {item.productName}</span>
-                        <span className="tabular-nums font-mono text-slate-400">${item.subtotal.toLocaleString()}</span>
+                        <span className="tabular-nums font-mono text-slate-400">₹{item.subtotal.toLocaleString('en-IN')}</span>
                       </div>
                     ))}
                   </div>

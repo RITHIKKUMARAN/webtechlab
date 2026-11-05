@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { X, Lock, Mail, User as UserIcon, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -28,6 +28,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) setMode(initialMode);
+  }, [initialMode, isOpen]);
 
   if (!isOpen) return null;
 
@@ -94,7 +98,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     if (result.success) {
       setSuccessMessage(result.message);
       // As per PDF: After successful registration, display a message containing the registered username
-      // e.g. "Successfully registered! Welcome, Raghavendra."
+      // The success message includes the registered username.
       setTimeout(() => {
         onClose();
         resetForm();
@@ -128,7 +132,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              Sign In (Page 2)
+              Sign in
             </button>
             <button
               onClick={() => switchMode('register')}
@@ -138,7 +142,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              Register (Page 1)
+              Create account
             </button>
           </div>
 
@@ -167,7 +171,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         )}
 
-        {/* PAGE 1: User Registration Form */}
+        {/* Registration form */}
         {mode === 'register' && (
           <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
             <div>
@@ -176,7 +180,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <UserIcon className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="e.g. Raghavendra"
+                  placeholder="e.g. Rithik Kumaran K"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 text-sm text-white glass-input rounded-xl focus:outline-none placeholder:text-slate-500"
