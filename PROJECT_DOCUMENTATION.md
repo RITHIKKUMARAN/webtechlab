@@ -64,7 +64,265 @@ Important files:
 - `public/products/`: local product image assets.
 - `scripts/generate-product-images.mjs`: generates the 500 product SVG assets.
 
-## 4. Frontend behavior
+## 4. Where frontend, backend, and database connect
+
+The request path is:
+
+```text
+React component
+  -> fetch('/api/...')
+  -> Express route in server.ts
+  -> auth/admin middleware and Zod validation
+  -> Store method in src/server/db.ts
+  -> Mongoose model
+  -> MongoDB Atlas
+  -> JSON response
+  -> React state update and UI re-render
+```
+
+### Frontend to backend connection
+
+The frontend and API use relative URLs such as `/api/login` and `/api/products`. This means the browser sends requests to the same domain where the app is deployed. In development, Vite serves the frontend through `server.ts`; in Vercel, `vercel.json` sends `/api/*` requests to `api/index.ts`, which exports the Express app.
+
+The main frontend request locations are:
+
+| Feature | Frontend file | Request |
+|---|---|---|
+| Restore session after reload | `src/context/AuthContext.tsx` | `GET /api/session` |
+| Register | `src/context/AuthContext.tsx` | `POST /api/users` |
+| Login | `src/context/AuthContext.tsx` | `POST /api/login` |
+| Logout | `src/context/AuthContext.tsx` | `POST /api/logout` |
+| Browse catalog | `src/App.tsx` | `GET /api/products` |
+| Add/edit products | `src/components/AdminPanel.tsx` | `POST` or `PUT /api/products` |
+| Delete products | `src/components/AdminPanel.tsx` | `DELETE /api/products/:productId` |
+| Checkout | `src/components/CheckoutModal.tsx` | `POST /api/checkout` |
+| View orders | `src/components/OrdersView.tsx` | `GET /api/orders` |
+| Update profile | `src/components/ProfileManagement.tsx` | `PUT` or `PATCH /api/users` |
+| Delete profile | `src/components/ProfileManagement.tsx` | `DELETE /api/users` |
+| Exercise endpoint testing | `src/components/ApiTester.tsx` | Dynamic request selected in the console |
+
+### Backend route connection
+
+All API route definitions are in `server.ts`:
+
+```text
+server.ts:170  POST   /api/users
+server.ts:192  POST   /api/login
+server.ts:208  POST   /api/logout
+server.ts:214  GET    /api/session
+server.ts:223  GET    /api/products
+server.ts:241  GET    /api/users
+server.ts:252  PUT    /api/users
+server.ts:268  PATCH  /api/users
+server.ts:284  DELETE /api/users
+server.ts:294  POST   /api/checkout
+server.ts:339  GET    /api/orders
+server.ts:343  POST   /api/products
+server.ts:358  PUT    /api/products/:productId
+server.ts:372  DELETE /api/products/:productId
+server.ts:380  GET    /api/admin/users
+server.ts:385  POST   /api/admin/reset-db
+```
+
+`server.ts` is responsible for:
+
+1. Receiving the HTTP request.
+2. Running security middleware such as Helmet, CORS, body-size limits, and rate limits.
+3. Connecting to MongoDB through `db.connect()` before API work.
+4. Checking JWT sessions through `auth`.
+5. Checking administrator role through `adminOnly`.
+6. Validating request bodies with Zod.
+7. Calling a database method from `db.ts`.
+8. Returning a JSON status and response.
+
+### Backend to database connection
+
+The connection is created in `src/server/db.ts`:
+
+```ts
+await mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 8000,
+  connectTimeoutMS: 8000,
+  socketTimeoutMS: 8000,
+  maxPoolSize: 5,
+});
+```
+
+The three Mongoose models are declared near the top of `db.ts`:
+
+- `UserModel` uses the Users collection.
+- `ProductModel` uses the Products collection.
+- `OrderModel` uses the Orders collection.
+
+`server.ts` initializes the database before API routes continue:
+
+```ts
+databaseReady ??= db.connect().then(() => db.ensureSeeded());
+await databaseReady;
+```
+
+This connection is reused by later requests instead of opening a new connection for every browser request.
+
+## 5. Fetch, create, update, and delete flows
+
+### Product browsing fetch
+
+The catalog request starts in `src/App.tsx`:
+
+```ts
+const res = await fetch('/api/products', {
+  method: 'GET',
+  headers,
+});
+const data = await res.json();
+setProducts(data.products || []);
+```
+
+The request reaches `server.ts`, which calls:
+
+```ts
+const products = await db.getAllProducts();
+```
+
+The database method runs:
+
+```ts
+return ProductModel.find().lean();
+```
+
+The returned JSON is stored in React state, then search, filtering, sorting, and rendering happen in the browser.
+
+### Admin creates a product
+
+The form in `src/components/AdminPanel.tsx` sends:
+
+```ts
+fetch('/api/products', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify(payload),
+});
+```
+
+The route in `server.ts` uses `auth` and `adminOnly`, validates the payload with `productInput`, and calls:
+
+```ts
+await db.addProduct(product);
+```
+
+The database method creates the MongoDB document:
+
+```ts
+await ProductModel.create(product);
+```
+
+After a successful response, the admin panel calls `fetchData()` again so the product table reflects the new record.
+
+### Admin updates a product or price
+
+The same form switches to `PUT` when an existing product is being edited:
+
+```text
+PUT /api/products/:productId
+```
+
+The server validates the partial product data and calls:
+
+```ts
+ProductModel.findOneAndUpdate(
+  { productId },
+  { $set: updates },
+  { new: true, runValidators: true },
+)
+```
+
+Changing the price is therefore a normal product update: the frontend sends the new `productPrice`, and Mongoose writes only the supplied fields with `$set`.
+
+### Admin deletes a product
+
+The Delete button sends:
+
+```text
+DELETE /api/products/:productId
+```
+
+The backend calls:
+
+```ts
+ProductModel.deleteOne({ productId });
+```
+
+The server returns `404` when no matching product exists and a success message when the document is deleted.
+
+### Profile update and delete
+
+`ProfileManagement.tsx` sends `PUT`, `PATCH`, or `DELETE` requests to `/api/users?emailId=...`.
+
+- `PUT` replaces the editable profile fields.
+- `PATCH` changes only selected fields.
+- `DELETE` removes the user document.
+
+The backend checks that the requested email belongs to the authenticated user unless the caller is an admin. Password changes are hashed with bcrypt and increment `sessionVersion`.
+
+### Checkout and database update
+
+`CheckoutModal.tsx` sends product IDs and quantities to `POST /api/checkout`. The server retrieves current products from MongoDB, calculates prices from database values, then calls:
+
+```ts
+db.createOrderWithStock(order, items);
+```
+
+Inside that method:
+
+```ts
+ProductModel.findOneAndUpdate(
+  { productId: item.productId, quantity: { $gte: item.quantity } },
+  { $inc: { quantity: -item.quantity } },
+  { new: true, session },
+);
+```
+
+After every stock update succeeds, the order is inserted using the same MongoDB transaction:
+
+```ts
+OrderModel.create([order], { session });
+```
+
+If any requested item is out of stock, the transaction fails and the order is not created. This is the main inventory update path.
+
+### Authentication fetches
+
+`AuthContext.tsx` owns authentication requests:
+
+- `GET /api/session`: restores the user from the HttpOnly cookie.
+- `POST /api/login`: verifies the bcrypt password and receives a new cookie.
+- `POST /api/users`: creates a bcrypt-hashed user and receives a new cookie.
+- `POST /api/logout`: revokes the database session version and clears the cookie.
+
+The browser sends cookies with `credentials: 'include'`. The JWT itself is not read by frontend JavaScript.
+
+## 6. API request lifecycle example
+
+For an admin changing a product price:
+
+```text
+1. Admin edits price in AdminPanel.tsx.
+2. AdminPanel.tsx sends PUT /api/products/PROD-101.
+3. Express receives the request in server.ts.
+4. auth verifies the HttpOnly JWT and current sessionVersion.
+5. adminOnly verifies role === 'admin'.
+6. Zod validates productPrice.
+7. db.updateProduct() runs ProductModel.findOneAndUpdate().
+8. MongoDB Atlas updates the Products document.
+9. Express returns the updated product as JSON.
+10. AdminPanel.tsx calls fetchData().
+11. React renders the updated price in the table.
+```
+
+## 7. Frontend behavior
 
 ### Public catalog browsing
 
@@ -130,7 +388,7 @@ Available client-side codes include:
 
 The reward pool also contains a `LUMINA50` entry, but the current cart coupon handler does not apply that code. A production discount system should move coupon validation to the server.
 
-## 5. Authentication and sessions
+## 8. Authentication and sessions
 
 ### Registration
 
@@ -170,7 +428,7 @@ with `credentials: 'include'`. The browser automatically sends the HttpOnly cook
 
 Logout and password changes increment `sessionVersion` in MongoDB. Existing JWTs then fail the database session-version check even if their cryptographic expiry has not been reached.
 
-## 6. Authorization
+## 9. Authorization
 
 There are two authorization levels:
 
@@ -185,7 +443,7 @@ auth -> adminOnly -> administrator route
 
 The frontend displays the Admin badge and dashboard navigation only when the authenticated user's database role is `admin`.
 
-## 7. Admin account configuration
+## 10. Admin account configuration
 
 Configure these Vercel environment variables:
 
@@ -206,7 +464,7 @@ During database initialization:
 5. A new hash is written only if the configured password changed.
 6. Session versions are incremented when the password changes.
 
-## 8. Product catalog and images
+## 11. Product catalog and images
 
 The catalog begins with six base products. The application generates 494 additional deterministic products:
 
@@ -230,7 +488,7 @@ The generated files are stored under `public/products/` and are served at paths 
 
 On initialization, `ensureSeeded()` inserts missing catalog records and migrates older broken image paths to the correct local product image paths.
 
-## 9. Product administration
+## 12. Product administration
 
 The admin dashboard uses protected endpoints:
 
@@ -252,7 +510,7 @@ The admin can:
 
 Product request bodies are validated with Zod. Prices must be finite and non-negative, quantities must be non-negative integers, and text fields have length limits.
 
-## 10. Checkout, payment, and MongoDB updates
+## 13. Checkout, payment, and MongoDB updates
 
 ### Important payment note
 
@@ -312,7 +570,7 @@ Orders store:
 - Status.
 - Creation timestamp.
 
-## 11. MongoDB collections
+## 14. MongoDB collections
 
 ### Users
 
@@ -346,7 +604,7 @@ Stores:
 
 Stores the order snapshot and delivery/payment information described above.
 
-## 12. API routes
+## 15. API routes
 
 ### Public routes
 
@@ -391,7 +649,7 @@ PATCH  /api/users
 DELETE /api/users
 ```
 
-## 13. Security controls
+## 16. Security controls
 
 - Zod validation on registration, login, profile, product, and checkout input.
 - Mongoose typed queries; no raw SQL.
@@ -413,7 +671,7 @@ DELETE /api/users
 - MongoDB transaction for stock decrement and order creation.
 - Safe generic production error responses that do not return database credentials or connection strings.
 
-## 14. Environment variables
+## 17. Environment variables
 
 ```env
 MONGODB_URI=mongodb+srv://...
@@ -434,7 +692,7 @@ For MongoDB Atlas:
 4. Confirm the database name in the connection string.
 5. Redeploy after changing variables.
 
-## 15. Local development and validation
+## 18. Local development and validation
 
 Install dependencies:
 
@@ -466,7 +724,7 @@ Generate or regenerate product images:
 npm run generate:product-images
 ```
 
-## 16. Known limitations and future improvements
+## 19. Known limitations and future improvements
 
 1. **Real payments**: integrate a provider such as Razorpay or Stripe instead of recording COD/payment selection only.
 2. **Server-side coupons**: validate coupon eligibility and discount limits on the server.
@@ -476,4 +734,3 @@ npm run generate:product-images
 6. **Cart revalidation**: refresh stale localStorage product snapshots before opening checkout.
 7. **Automated tests**: add API integration tests for authentication, admin authorization, checkout transactions, and session revocation.
 8. **CSRF strategy**: if cross-site access is ever required, add an explicit CSRF token design; the current same-origin and SameSite setup is intentionally restrictive.
-
