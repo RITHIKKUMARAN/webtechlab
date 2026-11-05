@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#431407"/><stop offset="1" stop-color="#080711"/></linearGradient></defs>
+<rect width="640" height="480" fill="url(#bg)"/><circle cx="193" cy="211" r="150" fill="#facc15" opacity=".12"/>
+<g fill="none" stroke="#facc15" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><rect x="125" y="225" width="390" height="135" rx="22"/><path d="M155 255h330M155 290h330M155 325h330"/><path d="M190 240v105M235 240v105M280 240v105M325 240v105M370 240v105M415 240v105M460 240v105"/></g>
+<g fill="#fef08a" font-family="Arial,sans-serif"><text x="42" y="54" font-size="18" font-weight="700" letter-spacing="3">NORTHSTAR SUPPLY</text><text x="42" y="430" font-size="20" font-weight="600">Peripherals 450</text><text x="42" y="456" font-size="13" opacity=".75">PROD-550 · Peripherals</text></g>
+</svg>

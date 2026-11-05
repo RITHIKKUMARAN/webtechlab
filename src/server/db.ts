@@ -55,12 +55,12 @@ const ProductModel = mongoose.models.Product || mongoose.model<Product>('Product
 const OrderModel = mongoose.models.Order || mongoose.model<Order>('Order', orderSchema);
 
 const INITIAL_PRODUCTS: Product[] = [
-  ['PROD-101', 'Aetheris ANC Wireless Studio Headphones', 349, 'Audio Hardware', 18, 'Precision-machined matte aluminum frame with high-fidelity custom planar dynamic drivers, active noise cancellation, and 40-hour lossless playback.', '/products/headphones.jpg', 4.9, true],
-  ['PROD-102', 'VaporCraft Frosted Custom Mechanical Keyboard', 220, 'Peripherals', 12, 'Smoked acrylic chassis with gasket mount architecture, hot-swappable tactile switches, and braided custom coiled aviator cable.', '/products/keyboard.jpg', 4.8, true],
-  ['PROD-103', 'Apex Titan Aerospace Smartwatch', 499, 'Wearables', 9, 'Grade 5 titanium unibody housing with sapphire crystal lens, dual-frequency GPS, biometric telemetry suite, and submersible 100m resistance.', '/products/smartwatch.jpg', 4.95, true],
-  ['PROD-104', 'HyperShield Minimalist Weatherproof Tech Pack', 175, 'Accessories', 25, 'Ballistic waterproof composite weave with magnetic Fidlock closures, suspended 16-inch laptop chamber, and ergonomic load-distribution straps.', '/products/backpack.jpg', 4.7, true],
-  ['PROD-105', 'NovaGlow Frosted Ambient Light Bar', 89, 'Peripherals', 30, 'Asymmetric optical desktop lamp with touch capacitive slider, 3000K-6500K adaptive color temperature, and zero-glare screen illumination.', '/products/desk-lamp.jpg', 4.6, false],
-  ['PROD-106', 'Chronos Obsidian Leather Card Case', 65, 'Accessories', 40, 'Full-grain vegetable-tanned Italian leather with RFID electromagnetic shielding and hand-beveled edges.', '/products/card-holder.jpg', 4.5, false],
+  ['PROD-101', 'Aetheris ANC Wireless Studio Headphones', 349, 'Audio Hardware', 18, 'Precision-machined matte aluminum frame with high-fidelity custom planar dynamic drivers, active noise cancellation, and 40-hour lossless playback.', '/products/PROD-101.svg', 4.9, true],
+  ['PROD-102', 'VaporCraft Frosted Custom Mechanical Keyboard', 220, 'Peripherals', 12, 'Smoked acrylic chassis with gasket mount architecture, hot-swappable tactile switches, and braided custom coiled aviator cable.', '/products/PROD-102.svg', 4.8, true],
+  ['PROD-103', 'Apex Titan Aerospace Smartwatch', 499, 'Wearables', 9, 'Grade 5 titanium unibody housing with sapphire crystal lens, dual-frequency GPS, biometric telemetry suite, and submersible 100m resistance.', '/products/PROD-103.svg', 4.95, true],
+  ['PROD-104', 'HyperShield Minimalist Weatherproof Tech Pack', 175, 'Accessories', 25, 'Ballistic waterproof composite weave with magnetic Fidlock closures, suspended 16-inch laptop chamber, and ergonomic load-distribution straps.', '/products/PROD-104.svg', 4.7, true],
+  ['PROD-105', 'NovaGlow Frosted Ambient Light Bar', 89, 'Peripherals', 30, 'Asymmetric optical desktop lamp with touch capacitive slider, 3000K-6500K adaptive color temperature, and zero-glare screen illumination.', '/products/PROD-105.svg', 4.6, false],
+  ['PROD-106', 'Chronos Obsidian Leather Card Case', 65, 'Accessories', 40, 'Full-grain vegetable-tanned Italian leather with RFID electromagnetic shielding and hand-beveled edges.', '/products/PROD-106.svg', 4.5, false],
 ].map(([productId, productName, productPrice, category, quantity, description, image, rating, isFeatured]) => ({
   productId: productId as string,
   productName: productName as string,
@@ -91,6 +91,7 @@ const FULL_CATALOG: Product[] = [
       productName: `${source.productName} — ${finish} Edition ${edition}`,
       productPrice: source.productPrice + ((index * 17) % 9) * 5,
       quantity: 8 + ((index * 13) % 43),
+      image: `/products/PROD-${107 + index}.svg`,
       isFeatured: index < 24,
     };
   }),
@@ -140,7 +141,7 @@ class Store {
     await ProductModel.bulkWrite(
       FULL_CATALOG.map(product => ({
         updateOne: {
-          filter: { productId: product.productId, image: /^\/src\/assets\// },
+          filter: { productId: product.productId, image: { $not: /^\/products\/PROD-\d+\.svg$/ } },
           update: { $set: { image: product.image } },
         },
       })),
