@@ -81,9 +81,7 @@ function ShoppingAppContent() {
       }
       setProducts([]);
       setProductLoadError(
-        res.status === 401
-          ? 'Sign in or create an account to browse the collection.'
-          : data.error || 'The catalog is temporarily unavailable. Please try again.',
+        data.error || 'The catalog is temporarily unavailable. Please try again.',
       );
     } catch {
       setLoadingProducts(false);

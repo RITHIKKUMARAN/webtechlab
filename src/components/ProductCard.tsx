@@ -18,6 +18,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect, onR
   const [justAdded, setJustAdded] = useState(false);
 
   const handleDragStart = (e: React.DragEvent) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      onRequireAuth?.();
+      return;
+    }
     sound.playWhoosh();
     e.dataTransfer.setData('text/plain', product.productId);
     e.dataTransfer.effectAllowed = 'copy';

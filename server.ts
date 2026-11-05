@@ -204,13 +204,13 @@ app.get('/api/session', auth, asyncRoute(async (req, res) => {
   res.json({ user: publicUser(user) });
 }));
 
-app.get('/api/products', auth, asyncRoute(async (_req, res) => {
+app.get('/api/products', asyncRoute(async (_req, res) => {
   const products = await db.getAllProducts();
   res.json({ total: products.length, products });
 }));
 
 app.get('/api/products/preview', (_req, res) => {
-  res.status(410).json({ error: 'Product data requires authentication. Please sign in.' });
+  res.redirect('/api/products');
 });
 
 const profileEmail = (req: AuthRequest): string => req.user?.emailId || '';
